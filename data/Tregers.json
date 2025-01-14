@@ -1,0 +1,7 @@
+{
+    "startGame" : false,
+    "autorsMeny" : false,
+    "mainMeny" : false,
+    "newGame" : false,
+    "loadGame" : false
+}

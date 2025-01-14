@@ -1,0 +1,21 @@
+{
+    "run" : true,
+    "meny" : true,
+    "play" : false,
+    "autors" : false,
+    "skip_enter" : false,
+    "errore_load" : false,
+    "creating_hero" : true,
+    "batle" : true,
+    "game_over" : false,
+    "shop" : false,
+    "data" : {},
+    "trips" : false,
+    "inventory" : false,
+    "room_map" : [],
+    "battle" : false,
+    "seting" : false,
+    "tui_open" : false,
+    "tooMenyWeight" : false,
+    "openTerminal" : false
+}
