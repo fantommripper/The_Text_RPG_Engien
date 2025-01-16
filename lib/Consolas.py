@@ -3,6 +3,8 @@ import logging
 import time
 import random as r
 
+from controller.AudioController import audio_controller
+
 class Consolas:
     def __init__(self, config, player, win):
         self.logger = logging.getLogger('Consolas')
@@ -48,44 +50,68 @@ class Consolas:
         self.calculate_position(24, 3)
         procent = 0
 
-        # Draw the loading bar frame
         self.win.addstr(self.table_y, self.table_x, "Xx____________________xX")
         self.win.addstr(self.table_y + 1, self.table_x, "||                    ||")
         self.win.addstr(self.table_y + 2, self.table_x, "Xx¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯xX")
 
         while procent < 100:
-            # Calculate the number of '=' to display in the progress bar
-            bar_length = 20  # Total length of the progress bar
+            bar_length = 20
             filled_length = int(bar_length * procent / 100)
             bar = "=" * filled_length + " " * (bar_length - filled_length)
 
-            # Display the progress percentage and the progress bar
             progress_display = f"Xx________{procent:03d}%________xX"
             self.win.addstr(self.table_y, self.table_x, progress_display)
             self.win.addstr(self.table_y + 1, self.table_x + 2, bar)
             self.win.refresh()
 
-            # Randomly increment percentage
             procent += r.randint(1, 3)
 
-            # Ensure it does not exceed 100%
             procent = min(procent, 100)
 
             time.sleep(speed)
 
-        # Display the final state (100%)
         progress_display = "Xx________100%________xX"
         bar = "=" * bar_length
         self.win.addstr(self.table_y, self.table_x, progress_display)
         self.win.addstr(self.table_y + 1, self.table_x + 2, bar)
         self.win.refresh()
 
-        # Pause before clearing the screen
         time.sleep(0.5)
         self.win.clear()
 
 
+
     def create_table(self, *args, style="info", use_clear=True, separator_positions=None, alignment=None, alignmentTable="c", table_width=22, x=None, y=None, Xdo="=", Ydo="="):
+        """
+        Creates a formatted table on the console window with specified styles and alignments.
+
+        Parameters:
+        args: tuple
+            The rows of the table to be displayed.
+        style: str, optional
+            The style of the table, either "info" or "error". Default is "info".
+        use_clear: bool, optional
+            Whether to clear the window before displaying the table. Default is True.
+        separator_positions: list, optional
+            Positions where separators should be added between rows.
+        alignment: dict, optional
+            Alignment for specific rows, with keys as row indices and values as "left", "center", or "right".
+        alignmentTable: str, optional#+
+            Overall alignment of the table, either "c" for center, "r" for right, or "l" for left. Default is "c".
+        table_width: int, optional
+            The width of the table. Default is 22.
+        x: int, optional
+            The x-coordinate for the table's position.
+        y: int, optional#+
+            The y-coordinate for the table's position.
+        Xdo: str, optional
+            Operation for x-coordinate adjustment: "=", "+", or "-". Default is "=".
+        Ydo: str, optional
+            Operation for y-coordinate adjustment: "=", "+", or "-". Default is "=".
+
+        Returns:
+        None
+        """
         self.logger.debug(f"Creating table with args={args}, style={style}, use_clear={use_clear}, separator_positions={separator_positions}, alignment={alignment}, alignmentTable={alignmentTable}, table_width={table_width}, x={x}, y={y}, Xdo={Xdo}, Ydo={Ydo}")
         self.alignmentTable = alignmentTable
         self.calculate_position(table_width + 7, len(args) + 2, x, y, Xdo, Ydo)
@@ -122,7 +148,7 @@ class Consolas:
         elif style == "error":
             separator_up_error()
 
-        #da.play_sound_print()
+        audio_controller.play_random_sound_print()
         self.win.refresh()
         time.sleep(self.config.delayOutput)
 
@@ -146,7 +172,7 @@ class Consolas:
                         formatted_line = " ".join(line.strip().split())
                         self.win.addstr(self.table_y, self.table_x, "|| {:<{width}} ||".format(formatted_line, width=table_width))
                         self.table_y += 1
-                        #da.play_sound_print()
+                        audio_controller.play_random_sound_print()
                 else:
                     if alignment is not None and index in alignment:
                         if alignment[index] == "center":
@@ -156,7 +182,7 @@ class Consolas:
                     else:
                         self.win.addstr(self.table_y, self.table_x, "|| {:<{width}} ||".format(row, width=table_width))
                     self.table_y += 1
-                    #da.play_sound_print()
+                    audio_controller.play_random_sound_print()
 
                 if separator_positions is not None and index in separator_positions:
                     separator_centr_info()
@@ -181,7 +207,7 @@ class Consolas:
                         formatted_line = " ".join(line.strip().split())
                         self.win.addstr(self.table_y, self.table_x, "!!! {:<{width}} !!!".format(formatted_line, width=table_width))
                         self.table_y += 1
-                        #da.play_sound_print()
+                        audio_controller.play_random_sound_print()
                 else:
                     if alignment is not None and index in alignment:
                         if alignment[index] == "center":
@@ -191,7 +217,7 @@ class Consolas:
                     else:
                         self.win.addstr(self.table_y, self.table_x, "!!! {:<{width}} !!!".format(row, width=table_width))
                     self.table_y += 1
-                    #da.play_sound_print()
+                    audio_controller.play_random_sound_print()
 
                 if separator_positions is not None and index in separator_positions:
                     separator_centr_error()
@@ -203,7 +229,7 @@ class Consolas:
         elif style == "error":
             separator_down_error()
 
-        #da.play_sound_print()
+        audio_controller.play_random_sound_print()
         self.win.refresh()
         self.logger.debug("Table created")
 
@@ -218,8 +244,8 @@ class Consolas:
 
         for frame in frames:
             self.win.addstr(self.table_y, self.table_x, frame)
-            #if audio:
-                #da.play_sound_print2()
+            if audio:
+                audio_controller.play_random_sound_print()
             self.win.refresh()
             curses.napms(int(delay * 1000))
             self.table_y += 1
@@ -249,7 +275,7 @@ class Consolas:
                 else:
                     self.win.addch(table_y, table_x, char)
             self.win.refresh()
-            #da.play_sound_print()
+            audio_controller.play_random_sound_print()
             time.sleep(0.02)
 
         self.win.refresh()

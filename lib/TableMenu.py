@@ -1,19 +1,25 @@
 import curses
 import logging
 import time
+import threading
 
 from lib.Logger import logger
+
+from controller.AudioController import audio_controller
 
 class TableMenu:
     def __init__(self, config, win):
         self.config = config
-        self.is_first_display = True  # флаг для первого отображения
+        self.is_first_display = True
         self.menu_x = 1
         self.menu_y = 1
         self.info_x = 35
         self.info_y = 1
         self.alignment = None
         self.win = win
+        self.menu_thread = None
+        self.menu_result = None
+        self.menu_active = False
 
     def calculate_position(self, width, height, x=None, y=None, Xdo="=", Ydo="="):
         if self.alignment == 'c':
@@ -58,24 +64,24 @@ class TableMenu:
             win.addstr("Xx" + "_" * (table_width + 2) + "xX\n")
             if self.is_first_display:
                 time.sleep(self.config.delayOutput)
-                #da.play_sound_print()
+                audio_controller.play_random_sound_print()
                 win.refresh()
 
         def separator_centr_info():
             win.addstr("||" + "-" * (table_width + 2) + "||\n")
             if self.is_first_display:
                 time.sleep(self.config.delayOutput)
-                #da.play_sound_print()
+                audio_controller.play_random_sound_print()
                 win.refresh()
 
         def separator_down_info():
             win.addstr("Xx" + "¯" * (table_width + 2) + "xX\n")
 
         separator_up_info()
-        #da.play_sound_print()
+        audio_controller.play_random_sound_print()
         win.addstr("|| {:^{width}} ||\n".format(title, width=table_width))
         separator_centr_info()
-        #da.play_sound_print()
+        audio_controller.play_random_sound_print()
 
         for index, option in enumerate(options):
             if index == selected_index:
@@ -91,11 +97,11 @@ class TableMenu:
 
             if self.is_first_display:
                 time.sleep(self.config.delayOutput)
-                #da.play_sound_print()
+                audio_controller.play_random_sound_print()
                 win.refresh()
 
         separator_down_info()
-        #da.play_sound_print()
+        audio_controller.play_random_sound_print()
 
 
     def menu(self, title, options, additional_info=["","","","","",""], alignment="c", x=None, y=None, color='cyan', tips=True, clear=True, info_width=50, Xdo="=", Ydo="="):
@@ -115,8 +121,8 @@ class TableMenu:
         bc = curses.COLOR_BLACK
 
         curses.start_color()
-        curses.init_pair(1, 7, bc)  # normal
-        curses.init_pair(2, col[color], bc)  # highlighted
+        curses.init_pair(1, 7, bc)
+        curses.init_pair(2, col[color], bc)
 
         if clear:
             self.win.clear()
@@ -125,27 +131,30 @@ class TableMenu:
         self.calculate_position(30, len(options) + 5, x, y, Xdo, Ydo)
 
         menu_win = curses.newwin(len(options) + 5, 30, self.menu_y, self.menu_x)
+        info_win = None
         if tips:
             info_win = curses.newwin(len(options) + 5, info_width, self.info_y, self.info_x)
 
+        self.menu_active = True
+        self.menu_thread = threading.Thread(target=self._menu_loop, args=(menu_win, info_win, title, options, additional_info, tips))
+        self.menu_thread.start()
+
+    def _menu_loop(self, menu_win, info_win, title, options, additional_info, tips):
         c = 0
         option = 0
-        while c != 10:  # Loop until 'Enter' key (ASCII 10) is pressed
+        while c != 10 and self.menu_active:
             menu_win.erase()
             if tips:
                 info_win.erase()
                 info_win.box()
                 self.display_info(info_win, additional_info, option)
 
-            # Draw the menu options
             self.create_table(menu_win, title, options, option)
 
-            # Refresh the window to show changes
             menu_win.refresh()
             if tips:
                 info_win.refresh()
 
-            # Get user input
             c = self.win.getch()
             logging.info(f"INFO: Key pressed: {c}", exc_info=False)
 
@@ -157,7 +166,19 @@ class TableMenu:
             self.is_first_display = False
 
         self.is_first_display = True
-        return str(option)
+        self.menu_result = str(option)
+        self.menu_active = False
+
+    def get_menu_result(self):
+        if self.menu_thread:
+            self.menu_thread.join()
+        return self.menu_result
+
+    def stop_menu(self):
+        self.menu_active = False
+        if self.menu_thread:
+            self.menu_thread.join()
+
 
     def display_info(self, info_win, additional_info, option):
         info_lines = additional_info[option].split('\n')
@@ -169,21 +190,21 @@ class TableMenu:
             win.addstr(self.menu_y, self.menu_x, "Xx" + "_" * (width + 2) + "xX\n")
             if self.is_first_display:
                 time.sleep(self.config.delayOutput)
-                #da.play_sound_print()
+                audio_controller.play_random_sound_print()
                 win.refresh()
 
         def separator_down_info():
             win.addstr(self.menu_y + 2, self.menu_x , "Xx" + "¯" * (width + 2) + "xX\n")
             if self.is_first_display:
                 time.sleep(self.config.delayOutput)
-                #da.play_sound_print()
+                audio_controller.play_random_sound_print()
                 win.refresh()
 
         separator_up_info()
         win.addstr(self.menu_y + 1, self.menu_x, "||" + " " * (width + 2) + "||")
         if self.is_first_display:
                 time.sleep(self.config.delayOutput)
-                #da.play_sound_print()
+                audio_controller.play_random_sound_print()
                 win.refresh()
         separator_down_info()
 
@@ -206,7 +227,7 @@ class TableMenu:
         curses.curs_set(1)
         text = ""
         c = 0
-        while True:  # Бесконечный цикл
+        while True:
             c = self.win.getch()
 
             logging.info(f"INFO: Key pressed: {c}", exc_info=False)
@@ -216,24 +237,24 @@ class TableMenu:
                     text = text[:-1]
                     self.win.move(c_pozition[1], c_pozition[0] + len(text))
                     self.win.addstr(' ')
-                    #da.play_sound_print()
+                    audio_controller.play_random_sound_print()
             elif c == 10:
                 self.win.clear()
                 self.win.refresh()
-                #da.play_sound_print()
+                audio_controller.play_random_sound_print()
                 break
             elif type == "str":
                 if c < 256 and len(text) < max_sumbol and c != 8:
                     text += chr(c)
-                    #da.play_sound_print()
+                    audio_controller.play_random_sound_print()
             elif type == "int":
                 if c in {48, 49, 50, 51, 52, 53, 54, 55, 56, 57} and len(text) < max_sumbol and c != 8:
                     text += chr(c)
-                    #da.play_sound_print()
+                    audio_controller.play_random_sound_print()
             elif type == "float":
                 if c in {48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 46} and len(text) < max_sumbol and c != 8:
                     text += chr(c)
-                    #da.play_sound_print()
+                    audio_controller.play_random_sound_print()
 
             self.win.move(c_pozition[1], c_pozition[0])
             self.win.addstr(text)

@@ -31,10 +31,7 @@ class App():
         self.run()
 
     def run(self):
-        game_flags.meny["test_audio"] = True
-
-        while game_flags.meny["test_audio"]:
-            menu_controller.show_audio_test_menu()
+        menu_controller.show_audio_test_menu()
 
 
 if __name__ == '__main__':

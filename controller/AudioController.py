@@ -1,5 +1,6 @@
 import pygame
 import os
+import random as r
 
 class AudioController:
     def __init__(self):
@@ -25,6 +26,12 @@ class AudioController:
         self.print2_sound = self.load_sound("print2.wav")
         self.print2_sound.set_volume(0.1)
         self.play_sound(self.print2_sound)
+
+    def play_random_sound_print(self):
+        self.sound = r.choice(["print.wav", "print2.wav"])
+        self.sound = self.load_sound(self.sound)
+        self.sound.set_volume(0.1)
+        self.play_sound(self.sound)
 
     def play_background_music(self):
         self.stop_music()
