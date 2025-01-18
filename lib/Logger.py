@@ -1,7 +1,7 @@
 import datetime
 import logging
 import os
-import traceback
+import inspect
 
 class Logger:
     def __init__(self, log_folder: str):
@@ -28,21 +28,33 @@ class Logger:
 
         self.logger.addHandler(file_handler)
 
+    def _get_caller_info(self):
+        frame = inspect.currentframe()
+        caller_frame = frame.f_back.f_back 
+        module = inspect.getmodule(caller_frame)
+        return module.__file__ if module else "Unknown File"
+
     def debug(self, message):
-        self.logger.debug(message)
+        caller_info = self._get_caller_info()
+        self.logger.debug(f"[{caller_info}] {message}")
 
     def info(self, message):
-        self.logger.info(message)
+        caller_info = self._get_caller_info()
+        self.logger.info(f"[{caller_info}] {message}")
 
     def warning(self, message):
-        self.logger.warning(message)
+        caller_info = self._get_caller_info()
+        self.logger.warning(f"[{caller_info}] {message}")
 
-    def error(self, message, exc_info=True):  # Добавлен параметр exc_info
-        self.logger.error(message, exc_info=exc_info)
+    def error(self, message, exc_info=True):
+        caller_info = self._get_caller_info()
+        self.logger.error(f"[{caller_info}] {message}", exc_info=exc_info)
 
     def critical(self, message):
-        self.logger.critical(message)
+        caller_info = self._get_caller_info()
+        self.logger.critical(f"[{caller_info}] {message}")
 
 
 
 logger = Logger(log_folder='LOG')
+

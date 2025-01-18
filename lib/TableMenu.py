@@ -3,9 +3,9 @@ import logging
 import time
 import threading
 
-from lib.Logger import logger
-
 from controller.AudioController import audio_controller
+
+from data.GameFlags import game_flags
 
 class TableMenu:
     def __init__(self, config, win):
@@ -154,6 +154,7 @@ class TableMenu:
             menu_win.refresh()
             if tips:
                 info_win.refresh()
+
 
             c = self.win.getch()
             logging.info(f"INFO: Key pressed: {c}", exc_info=False)

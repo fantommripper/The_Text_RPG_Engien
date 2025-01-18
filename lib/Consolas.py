@@ -14,10 +14,14 @@ class Consolas:
         self.table_x = 1
         self.table_y = 1
         self.alignmentTable = None
-        self.logger.debug("Consolas initialized")
+        self.logger.info("Consolas initialized")
+
+    def clear_window(self):
+        self.win.clear()
+        self.win.refresh()
 
     def calculate_position(self, width, height, x=None, y=None, Xdo="=", Ydo="="):
-        self.logger.debug(f"Calculating position with width={width}, height={height}, x={x}, y={y}, Xdo={Xdo}, Ydo={Ydo}")
+        self.logger.info(f"Calculating position with width={width}, height={height}, x={x}, y={y}, Xdo={Xdo}, Ydo={Ydo}")
         if self.alignmentTable == 'c':
             self.table_x = (curses.COLS - width) // 2
             self.table_y = (curses.LINES - height) // 2
@@ -42,7 +46,7 @@ class Consolas:
                 self.table_y -= y
             elif Ydo == "+":
                 self.table_y += y
-        self.logger.debug(f"Calculated position: table_x={self.table_x}, table_y={self.table_y}")
+        self.logger.info(f"Calculated position: table_x={self.table_x}, table_y={self.table_y}")
 
 
     def fast_loading(self , speed=0.04):
@@ -112,7 +116,7 @@ class Consolas:
         Returns:
         None
         """
-        self.logger.debug(f"Creating table with args={args}, style={style}, use_clear={use_clear}, separator_positions={separator_positions}, alignment={alignment}, alignmentTable={alignmentTable}, table_width={table_width}, x={x}, y={y}, Xdo={Xdo}, Ydo={Ydo}")
+        self.logger.info(f"Creating table with args={args}, style={style}, use_clear={use_clear}, separator_positions={separator_positions}, alignment={alignment}, alignmentTable={alignmentTable}, table_width={table_width}, x={x}, y={y}, Xdo={Xdo}, Ydo={Ydo}")
         self.alignmentTable = alignmentTable
         self.calculate_position(table_width + 7, len(args) + 2, x, y, Xdo, Ydo)
 
@@ -231,11 +235,11 @@ class Consolas:
 
         audio_controller.play_random_sound_print()
         self.win.refresh()
-        self.logger.debug("Table created")
+        self.logger.info("Table created")
 
 
     def play_animation(self, frames, delay=0.3, alignmentTable="c", x=None, y=None, clear=True, Xdo="=", Ydo="=", audio=True):
-        self.logger.debug(f"Playing animation with frames={frames}, delay={delay}, alignmentTable={alignmentTable}, x={x}, y={y}, clear={clear}, Xdo={Xdo}, Ydo={Ydo}, audio={audio}")
+        self.logger.info(f"Playing animation with frames={frames}, delay={delay}, alignmentTable={alignmentTable}, x={x}, y={y}, clear={clear}, Xdo={Xdo}, Ydo={Ydo}, audio={audio}")
         self.alignmentTable = alignmentTable
         self.calculate_position(len(frames[0]), len(frames), x, y, Xdo, Ydo)
 
@@ -251,11 +255,11 @@ class Consolas:
             self.table_y += 1
 
         self.win.refresh()
-        self.logger.debug("Animation played")
+        self.logger.info("Animation played")
 
 
     def display_map(self, map_array, player, alignmentTable="c", x=None, y=None, Xdo="=", Ydo="="):
-        self.logger.debug(f"Displaying map with player position x={player.x}, y={player.y}")
+        self.logger.info(f"Displaying map with player position x={player.x}, y={player.y}")
         self.alignmentTable = alignmentTable
 
         self.win.clear()
@@ -279,11 +283,11 @@ class Consolas:
             time.sleep(0.02)
 
         self.win.refresh()
-        self.logger.debug("Map displayed")
+        self.logger.info("Map displayed")
 
 
     def loading_animation(self, imports):
-        self.logger.debug(f"Starting loading animation for imports={imports}")
+        self.logger.info(f"Starting loading animation for imports={imports}")
         animation_symbols = ['|', '/', '-', '\\']
         max_length = max(len(module) for module in imports)
         height, width = self.win.getmaxyx()
@@ -306,4 +310,4 @@ class Consolas:
             time.sleep(r.uniform(0.02, 0.09))
             y += 1
         self.win.refresh()
-        self.logger.debug("Loading animation completed")
+        self.logger.info("Loading animation completed")

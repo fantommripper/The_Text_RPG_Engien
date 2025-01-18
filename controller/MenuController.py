@@ -1,4 +1,4 @@
-from event.menu.TestWorldMeny.AudioTestMenu import audio_test_menu
+from event.menu.test_world_menu.AudioTestMenu import audio_test_menu
 from lib.Logger import logger
 
 class MenuController():

@@ -1,7 +1,5 @@
 class GameFlags:
     def __init__(self):
-        self.meny = {
-            "test_audio": False,
-        }
+        self.open_terminal = False
 
 game_flags = GameFlags()
