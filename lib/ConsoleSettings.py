@@ -59,6 +59,7 @@ class ConsoleSettings():
         logger.info(f"Terminal size after adjustment: {height}x{width}")
         win = curses.newwin(height, width, 0, 0)
         return win
+        
 
 
 

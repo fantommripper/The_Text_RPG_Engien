@@ -10,9 +10,7 @@ class MainMenu():
         while True:
             lib_controller.consolas.play_animation(
                 frames = logo.text_rpg_logo,
-                y=10,
-                Ydo="-"
-               
+                y = 1
             )
             
 
@@ -20,11 +18,12 @@ class MainMenu():
                 clear=False,
                 title="Menu",
                 options=["new game", "loud game", "options", "autors", "exit"],
+                y=10,
                 tips=False
                 
             )
             self.action = lib_controller.table_menu.get_menu_result()
-
+            
             if self.action: 
                 logger.debug(f"Selected option: {self.action}")
 
