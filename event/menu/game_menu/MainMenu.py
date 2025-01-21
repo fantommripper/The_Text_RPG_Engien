@@ -1,12 +1,16 @@
 from controller.LibController import lib_controller
 from lib.Logger import logger
 from data.Logo import logo
+from controller.MenuController import menu_controller
+from controller.AudioController import audio_controller
 
 class MainMenu():
     def __init__(self):
         pass
 
     def run(self):
+        audio_controller.play_background_music()
+
         while True:
             lib_controller.consolas.play_animation(
                 frames = logo.text_rpg_logo,
@@ -39,6 +43,9 @@ class MainMenu():
                 
                 elif self.action == "3":
                     logger.debug("autors")
+                    menu_controller.show_autors_menu()
+
+
 
                 elif self.action == "4":
                     logger.debug("exit")

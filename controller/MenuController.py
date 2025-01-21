@@ -13,4 +13,9 @@ class MenuController():
         from event.menu.game_menu.MainMenu import main_menu 
         main_menu.run()
 
+    def show_autors_menu(self):
+        from event.menu.game_menu.AutorsMenu import autors_menu
+        autors_menu.run()
+
+
 menu_controller = MenuController()
