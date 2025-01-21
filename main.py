@@ -33,7 +33,8 @@ class App():
         self.run()
 
     def run(self):
-        menu_controller.show_audio_test_menu()
+        menu_controller.show_main_menu()
+    
 
 
 if __name__ == '__main__':
