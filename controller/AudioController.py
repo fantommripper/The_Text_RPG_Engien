@@ -61,4 +61,11 @@ class AudioController:
         pygame.mixer.music.load(forest_music_path)
         pygame.mixer.music.play(-1)
 
+    def play_the_void(self):
+        self.stop_music()
+
+        the_void_music_path = os.path.join("data", "sound", "The Void.wav")
+        pygame.mixer.music.load(the_void_music_path)
+        pygame.mixer.music.play(-1)
+
 audio_controller = AudioController()
