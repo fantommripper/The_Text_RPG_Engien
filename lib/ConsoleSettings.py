@@ -1,12 +1,15 @@
 import ctypes
 import curses
 import os
-import time
 import pyautogui
 import keyboard
 import pygetwindow as gw
 
 from lib.Logger import logger
+from lib.SaveManager import save_manager
+
+from controller.InputController import input_controller
+from controller.AudioController import audio_controller
 
 class COORD(ctypes.Structure):
     _fields_ = [("X", ctypes.c_short), ("Y", ctypes.c_short)]
@@ -29,24 +32,19 @@ class ConsoleSettings():
         pass
 
     def get_current_window_title(self):
-        # Получаем активное окно
         active_window = gw.getActiveWindow()
         if active_window:
             return active_window.title
         return None
 
     def maximize_terminal(self):
-        # Находим текущее окно терминала
-        windows = gw.getWindowsWithTitle(self.get_current_window_title())  # Замените название, если нужно
+        windows = gw.getWindowsWithTitle(self.get_current_window_title())
         if not windows:
-            print("Окно терминала не найдено.")
             return
 
         terminal_window = windows[0]
 
-        # Максимизируем окно
         terminal_window.maximize()
-        print("Терминал растянут на весь экран.")
 
     def open_terminal_fullscreen(self):
         self.maximize_terminal()
@@ -59,7 +57,16 @@ class ConsoleSettings():
         logger.info(f"Terminal size after adjustment: {height}x{width}")
         win = curses.newwin(height, width, 0, 0)
         return win
-        
+
+    def exit_terminal(self):
+        save_manager.save_all_game_data()
+
+        curses.endwin()
+        input_controller.stop_getting_input()
+        audio_controller.stop_music()
+
+        quit(0)
+
 
 
 

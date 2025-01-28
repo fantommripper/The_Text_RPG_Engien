@@ -9,4 +9,30 @@ class Resistances:
         self.shieldResistInt = 0
         self.MagicPhysicalResistInt = 0
 
+    def to_dict(self):
+        return {
+            'MagicResistInt': self.MagicResistInt,
+            'PhysicalResistInt': self.PhysicalResistInt,
+            'PoisonResistInt': self.PoisonResistInt,
+            'ToxinResistInt': self.ToxinResistInt,
+            'helmetResistInt': self.helmetResistInt,
+            'chestplateResistInt': self.chestplateResistInt,
+            'shieldResistInt': self.shieldResistInt,
+            'MagicPhysicalResistInt': self.MagicPhysicalResistInt,
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            data['MagicResistInt'],
+            data['PhysicalResistInt'],
+            data['PoisonResistInt'],
+            data['ToxinResistInt'],
+            data['helmetResistInt'],
+            data['chestplateResistInt'],
+            data['shieldResistInt'],
+            data['MagicPhysicalResistInt'],
+        )
+
+
 resistances = Resistances()

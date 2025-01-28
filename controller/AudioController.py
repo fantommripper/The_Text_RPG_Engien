@@ -5,7 +5,6 @@ import random as r
 class AudioController:
     def __init__(self):
         self.volume = 0.5
-
         pygame.mixer.init()
 
     def load_sound(self, filename):

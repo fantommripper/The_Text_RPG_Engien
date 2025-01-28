@@ -2,12 +2,14 @@ import curses
 
 from lib.ConsoleSettings import console_settings
 from lib.Logger import logger
+from lib.SaveManager import save_manager
 
 from controller.MenuController import menu_controller
 from controller.LibController import lib_controller
 from controller.InputController import input_controller
+from controller.AudioController import audio_controller
 
-from data.GameFlags import game_flags
+from data.Config import config
 
 class App():
     def __init__(self):
@@ -27,14 +29,24 @@ class App():
         self.win.clear()
         self.win.refresh()
 
-        lib_controller.loud_lib(self.win)
+        lib_controller.load_lib(self.win)
         input_controller.start_getting_input()
 
         self.run()
 
     def run(self):
+        save_manager.load_all_game_data()
+
+        if config.loading == 0:
+            lib_controller.consolas.loading_animation()
+        else:
+            lib_controller.consolas.fast_loading()
+
+        config.loading += 1
+
+        audio_controller.play_background_music()
         menu_controller.show_main_menu()
-    
+
 
 
 if __name__ == '__main__':
@@ -43,9 +55,14 @@ if __name__ == '__main__':
 
         app = App()
         curses.wrapper(app.start)
+
     except Exception as e:
         logger.error(f'ERROR: {str(e)}', exc_info=True)
 
-    curses.endwin()
-    input_controller.stop_getting_input()
+        curses.endwin()
+        input_controller.stop_getting_input()
+        audio_controller.stop_music()
+        quit(1)
+
+
 
