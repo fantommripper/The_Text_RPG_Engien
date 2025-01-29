@@ -1,4 +1,4 @@
-
+from lib.ConsoleSettings import console_settings
 from lib.Logger import logger
 
 from data.Logo import logo
@@ -6,7 +6,7 @@ from data.Logo import logo
 from controller.MenuController import menu_controller
 from controller.LibController import lib_controller
 
-from lib.ConsoleSettings import console_settings
+
 class MainMenu():
     def __init__(self):
         pass
@@ -39,7 +39,7 @@ class MainMenu():
 
                 elif self.action == "2":
                     logger.info("options")
-                
+
                 elif self.action == "3":
                     logger.info("autors")
                     menu_controller.show_autors_menu()

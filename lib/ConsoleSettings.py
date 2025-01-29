@@ -8,7 +8,6 @@ import pygetwindow as gw
 from lib.Logger import logger
 from lib.SaveManager import save_manager
 
-from controller.InputController import input_controller
 from controller.AudioController import audio_controller
 
 class COORD(ctypes.Structure):
@@ -62,7 +61,6 @@ class ConsoleSettings():
         save_manager.save_all_game_data()
 
         curses.endwin()
-        input_controller.stop_getting_input()
         audio_controller.stop_music()
 
         quit(0)

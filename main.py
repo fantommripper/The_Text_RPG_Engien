@@ -30,7 +30,7 @@ class App():
         self.win.refresh()
 
         lib_controller.load_lib(self.win)
-        input_controller.start_getting_input()
+        input_controller.add_all_hotkeys()
 
         self.run()
 
@@ -60,7 +60,6 @@ if __name__ == '__main__':
         logger.error(f'ERROR: {str(e)}', exc_info=True)
 
         curses.endwin()
-        input_controller.stop_getting_input()
         audio_controller.stop_music()
         quit(1)
 

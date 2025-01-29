@@ -480,11 +480,16 @@ class Consolas:
             self.menu_active = False
 
         def toggle_pause(self):
-            self.menu_paused = not self.menu_paused
+            if self.menu_paused:
+                self.menu_paused = False
+                self.menu()
+            else:
+                self.menu_paused = True
 
         def get_menu_result(self):
             if self.menu_thread:
                 self.menu_thread.join()
+            self.menu_paused = True
             return self.menu_result
 
         def stop_menu(self):
