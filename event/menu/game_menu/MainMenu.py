@@ -39,7 +39,8 @@ class MainMenu():
 
                 elif self.action == "2":
                     logger.info("options")
-
+                    menu_controller.show_setting_menu()
+                
                 elif self.action == "3":
                     logger.info("autors")
                     menu_controller.show_autors_menu()

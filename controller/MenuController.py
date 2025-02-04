@@ -21,5 +21,9 @@ class MenuController():
         from event.menu.test_world_menu.WidgetTestMenu import widget_test_menu
         widget_test_menu.run()
 
+    def show_setting_menu(self):
+        from event.menu.game_menu.SettingMenu import setting_menu
+        setting_menu.run()
+
 
 menu_controller = MenuController()
