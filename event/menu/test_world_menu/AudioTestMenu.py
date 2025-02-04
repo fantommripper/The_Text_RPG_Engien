@@ -9,14 +9,16 @@ class AudioTestMenu():
         pass
 
     def run(self):
-        main_menu_widget = lib_controller.consolas.create_menu(
-                        title="Audio Test",
-                        options=["exit", "Battle Music.wav", "BGmusic.wav", "Forest Music.wav", "Shop Music.wav"],
-                        tips=False,
-                    )
-        self.action = main_menu_widget.get_menu_result()
+
 
         while True:
+            main_menu_widget = lib_controller.consolas.create_menu(
+                            title="Audio Test",
+                            options=["exit", "Battle Music.wav", "BGmusic.wav", "Forest Music.wav", "Shop Music.wav"],
+                            tips=False,
+                        )
+            self.action = main_menu_widget.get_menu_result()
+
             if self.action:
                 logger.info(f"Selected option: {self.action}")
                 if self.action == "0":

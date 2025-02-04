@@ -8,26 +8,27 @@ class AutorsMenu():
         pass
 
     def run(self):
-        self.autors_table = lib_controller.consolas.create_table(
-            "Autors",
-            "perri",
-            "fantomm",
-            y=8,
-            Ydo="-",
-            separator_positions=[0],
-            alignment={0: "c"},
-        )
-
-        self.main_menu = lib_controller.consolas.create_menu(
-            clear=False,
-            title="Menu",
-            options=["back"],
-            tips=False
-        )
-
-        self.action = self.main_menu.get_menu_result()
-
         while True:
+            self.autors_table = lib_controller.consolas.create_table(
+                "Autors",
+                "perri",
+                "fantomm",
+                y=8,
+                Ydo="-",
+                separator_positions=[0],
+                alignment={0: "c"},
+            )
+
+            self.main_menu = lib_controller.consolas.create_menu(
+                clear=False,
+                title="Menu",
+                options=["back"],
+                tips=False
+            )
+
+            self.action = self.main_menu.get_menu_result()
+
+
             if self.action:
                 logger.info(f"Selected option: {self.action}")
 

@@ -62,7 +62,7 @@ class ConsoleSettings():
 
         curses.endwin()
         audio_controller.stop_music()
-
+        print("If you see this message press `alt + f4` to exit")
         quit(0)
 
 

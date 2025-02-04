@@ -12,21 +12,21 @@ class MainMenu():
         pass
 
     def run(self):
-        self.display_logo = lib_controller.consolas.play_animation(
-                        frames = logo.text_rpg_logo,
-                        y=10,
-                        Ydo="-"
-        )
-
-        self.main_menu = lib_controller.consolas.create_menu(
-                        clear=False,
-                        title="Menu",
-                        options=["new game", "load game", "options", "autors", "exit"],
-                        tips=False,
-        )
-        self.action = self.main_menu.get_menu_result()
-
         while True:
+            self.display_logo = lib_controller.consolas.play_animation(
+                                    frames = logo.text_rpg_logo,
+                                    y=10,
+                                    Ydo="-"
+            )
+
+            self.main_menu = lib_controller.consolas.create_menu(
+                            clear=False,
+                            title="Menu",
+                            options=["new game", "load game", "options", "autors", "exit"],
+                            tips=False,
+            )
+
+            self.action = self.main_menu.get_menu_result()
 
             if self.action:
                 logger.info(f"Selected option: {self.action}")
