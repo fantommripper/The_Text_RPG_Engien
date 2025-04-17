@@ -2,7 +2,7 @@ import json
 import os
 from cryptography.fernet import Fernet
 
-from data.Config import Config,config
+from data.Config import config
 
 from lib.Logger import logger
 

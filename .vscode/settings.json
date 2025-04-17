@@ -1,4 +1,32 @@
 {
-    "python.REPL.enableREPLSmartSend": false
+    "python.REPL.enableREPLSmartSend": false,
+    "cSpell.words": [
+        "Отрисовка",
+        "Центрирование",
+        "addstr",
+        "attroff",
+        "attron",
+        "autors",
+        "bkgd",
+        "consolas",
+        "doupdate",
+        "endwin",
+        "fantomm",
+        "Fastloading",
+        "getch",
+        "getmaxyx",
+        "icol",
+        "lenght",
+        "mousemask",
+        "newwin",
+        "noutrefresh",
+        "numpad",
+        "perri",
+        "pozition",
+        "procent",
+        "stdscr",
+        "sumbol",
+        "terminalium"
+    ]
     
 }

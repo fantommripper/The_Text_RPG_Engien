@@ -9,17 +9,16 @@ from controller.LibController import lib_controller
 
 class MainMenu():
     def __init__(self):
-        pass
+        self.consolas = lib_controller.consolas
 
     def run(self):
+        self.display_logo = self.consolas.play_animation(
+                       frames = logo.text_rpg_logo,
+                       y=10,
+                       Ydo="-"
+        )
         while True:
-            self.display_logo = lib_controller.consolas.play_animation(
-                                    frames = logo.text_rpg_logo,
-                                    y=10,
-                                    Ydo="-"
-            )
-
-            self.main_menu = lib_controller.consolas.create_menu(
+            self.main_menu = self.consolas.create_menu(
                             clear=False,
                             title="Menu",
                             options=["new game", "load game", "options", "autors", "exit"],

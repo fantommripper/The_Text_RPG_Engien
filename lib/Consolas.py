@@ -1,8 +1,9 @@
 import curses
-import logging
 import threading
 import time
 import random as r
+
+import keyboard
 
 from controller.AudioController import audio_controller
 
@@ -13,6 +14,8 @@ class Consolas:
         self.config = config
         self.player = player
         self.win = win
+        self.tab_active = False
+        self.current_focus = 0
         logger.info("Consolas initialized")
 
     def clear_window(self):
@@ -20,24 +23,25 @@ class Consolas:
         self.win.refresh()
 
     def calculate_position(self, width, height, alignmentTable, x=None, y=None, Xdo="=", Ydo="="):
+        max_y, max_x = self.win.getmaxyx()
+        absolute_center_x = (max_x - width) // 2
+        absolute_center_y = (max_y - height) // 2
 
-        absolute_center_x = (curses.COLS - width) // 2
-        absolute_center_y = (curses.LINES - height) // 2
-
-        if alignmentTable == 'c':  # Центрирование
+        if alignmentTable == 'c':
             self.table_x, self.table_y = absolute_center_x, absolute_center_y
-        elif alignmentTable == 'r':  # Справа
-            self.table_x = curses.COLS - width - 1
+        elif alignmentTable == 'r':
+            self.table_x = max_x - width - 1
             self.table_y = absolute_center_y
-        elif alignmentTable == 'l':  # Слева
+        elif alignmentTable == 'l':
             self.table_x, self.table_y = 1, 1
 
-        if x != None:
+        if x is not None:
             self.table_x = x if Xdo == "=" else self.table_x + x * (1 if Xdo == "+" else -1)
-        if y != None:
+        if y is not None:
             self.table_y = y if Ydo == "=" else self.table_y + y * (1 if Ydo == "+" else -1)
 
         return self.table_x, self.table_y
+
 
     def fast_loading(self, speed=0.04):
         return self.Fastloading(self, speed)
@@ -54,8 +58,37 @@ class Consolas:
     def create_menu(self, title, options, additional_info=None, alignment="c", x=None, y=None, color='cyan', tips=True, clear=True, info_width=50, table_width=22, Xdo="=", Ydo="="):
         return self.Menu(self, title, options, additional_info, alignment, x, y, color, tips, clear, info_width, table_width, Xdo, Ydo)
 
-    def create_text_box(self, title, table_alignment="c", clear=True, x=None, y=None, width=22, max_sumbol=22, input_type="str", Xdo="=", Ydo="="):
-        return self.TextBox(self, title, table_alignment, clear, x, y, width, max_sumbol, input_type, Xdo, Ydo)
+    def create_text_box(self, table_alignment="c", clear=True, x=None, y=None, width=22, max_sumbol=22, input_type="str", Xdo="=", Ydo="="):
+        return self.TextBox(self, table_alignment, clear, x, y, width, max_sumbol, input_type, Xdo, Ydo)
+
+    def start_tab_control(self, widgets: list):
+        self.tab_active = True
+        current_focus = 0
+        widgets[current_focus].toggle_pause()
+
+        self.win.keypad(True)
+        curses.mousemask(1)
+
+        while self.tab_active:
+            c = self.win.getch()
+
+            if c == 9 or c == curses.KEY_BTAB:
+                widgets[current_focus].toggle_pause()
+
+                if c == 9:
+                    current_focus = (current_focus + 1) % len(widgets)
+                else:
+                    current_focus = (current_focus - 1) % len(widgets)
+
+                widgets[current_focus].toggle_pause()
+
+            elif c == 27:
+                self.stop_tab_control()
+
+    def stop_tab_control(self):
+        self.tab_active = False
+        self.win.keypad(False)
+        curses.mousemask(0)
 
     class Fastloading():
 
@@ -219,15 +252,15 @@ class Consolas:
 
         def _draw_separator(self):
             if self.style == "info":
-                self._separator_centr_info()
+                self._separator_center_info()
             elif self.style == "error":
-                self._separator_centr_error()
+                self._separator_center_error()
 
 
         def _separator_up_info(self):
             self._draw_separator_line("Xx", "_", "xX")
 
-        def _separator_centr_info(self):
+        def _separator_center_info(self):
             self._draw_separator_line("||", "-", "||")
 
         def _separator_down_info(self):
@@ -236,7 +269,7 @@ class Consolas:
         def _separator_up_error(self):
             self._draw_separator_line(">>>", "═", "<<<")
 
-        def _separator_centr_error(self):
+        def _separator_center_error(self):
             self._draw_separator_line("!!!", "-", "!!!")
 
         def _separator_down_error(self):
@@ -357,7 +390,7 @@ class Consolas:
             self.Ydo = Ydo
 
             self.menu_active = False
-            self.menu_paused = False
+            self.menu_paused = True
             self.menu_thread = None
             self.is_first_display = True
             self.menu_result = None
@@ -365,45 +398,51 @@ class Consolas:
             self.menu()
 
         def display_info(self, info_win, additional_info, option):
+            color = 3 if self.menu_paused else 1
+            info_win.attron(curses.color_pair(color))
             info_lines = additional_info[option].split('\n')
             for i, line in enumerate(info_lines, start=1):
                 info_win.addstr(i, 1, line)
+            info_win.attroff(curses.color_pair(color))
 
         def create_table(self, win, title, options, selected_index, table_width=22):
+            main_color = 3 if self.menu_paused else 1
+            selected_color = 3 if self.menu_paused else 2
+
             def separator_up_info():
-                win.addstr("Xx" + "_" * (table_width + 2) + "xX\n")
+                win.addstr("Xx" + "_" * (table_width + 2) + "xX\n", curses.color_pair(main_color))
                 if self.is_first_display:
                     time.sleep(self.config.delayOutput)
                     audio_controller.play_random_sound_print()
                     win.refresh()
 
-            def separator_centr_info():
-                win.addstr("||" + "-" * (table_width + 2) + "||\n")
+            def separator_center_info():
+                win.addstr("||" + "-" * (table_width + 2) + "||\n", curses.color_pair(main_color))
                 if self.is_first_display:
                     time.sleep(self.config.delayOutput)
                     audio_controller.play_random_sound_print()
                     win.refresh()
 
             def separator_down_info():
-                win.addstr("Xx" + "¯" * (table_width + 2) + "xX\n")
+                win.addstr("Xx" + "¯" * (table_width + 2) + "xX\n", curses.color_pair(main_color))
 
             separator_up_info()
             audio_controller.play_random_sound_print()
-            win.addstr("|| {:^{width}} ||\n".format(title, width=table_width))
-            separator_centr_info()
+            win.addstr("|| {:^{width}} ||\n".format(title, width=table_width), curses.color_pair(main_color))
+            separator_center_info()
             audio_controller.play_random_sound_print()
 
             for index, option in enumerate(options):
-                if index == selected_index:
+                if index == selected_index and not self.menu_paused:
                     option_str = "> {:<{width}}".format(option, width=table_width - 2)
-                    win.addstr("|| ", curses.color_pair(1))
-                    win.addstr(option_str, curses.color_pair(2))
-                    win.addstr(" ||\n", curses.color_pair(1))
+                    win.addstr("|| ", curses.color_pair(main_color))
+                    win.addstr(option_str, curses.color_pair(selected_color))
+                    win.addstr(" ||\n", curses.color_pair(main_color))
                 else:
                     option_str = "  {:<{width}}".format(option, width=table_width - 2)
-                    win.addstr("|| ", curses.color_pair(1))
-                    win.addstr(option_str, curses.color_pair(1))
-                    win.addstr(" ||\n", curses.color_pair(1))
+                    win.addstr("|| ", curses.color_pair(main_color))
+                    win.addstr(option_str, curses.color_pair(main_color))
+                    win.addstr(" ||\n", curses.color_pair(main_color))
 
                 if self.is_first_display:
                     time.sleep(self.config.delayOutput)
@@ -432,6 +471,7 @@ class Consolas:
             curses.start_color()
             curses.init_pair(1, 7, bc)
             curses.init_pair(2, col[self.color], bc)
+            curses.init_pair(3, 8, bc)
 
             if self.clear:
                 self.win.clear()
@@ -450,41 +490,45 @@ class Consolas:
             self.menu_thread.start()
 
         def _menu_loop(self, menu_win, info_win, title, options, additional_info, tips):
-            c = 0
             option = 0
-            while c != 10 and self.menu_active:
+            while self.menu_active:
                 menu_win.erase()
                 if tips:
                     info_win.erase()
+                    box_color = curses.color_pair(3) if self.menu_paused else curses.color_pair(1)
+                    info_win.attron(box_color)
                     info_win.box()
+                    info_win.attroff(box_color)
                     self.display_info(info_win, additional_info, option)
 
                 self.create_table(menu_win, title, options, option, self.table_width)
-
                 menu_win.refresh()
                 if tips:
                     info_win.refresh()
 
-
-                c = self.win.getch()
-
-                if c == curses.KEY_UP:
-                    option = (option - 1) % len(options)
-                elif c == curses.KEY_DOWN:
-                    option = (option + 1) % len(options)
+                if not self.menu_paused:
+                    event = keyboard.read_event()
+                    if event.event_type == keyboard.KEY_DOWN:
+                        c = event.name
+                        if c == 'up':
+                            option = (option - 1) % len(options)
+                        elif c == 'down':
+                            option = (option + 1) % len(options)
+                        elif c == 'enter':
+                            break
+                else:
+                    time.sleep(0.01)
 
                 self.is_first_display = False
 
-            self.is_first_display = True
             self.menu_result = str(option)
             self.menu_active = False
 
+
         def toggle_pause(self):
-            if self.menu_paused:
-                self.menu_paused = False
+            self.menu_paused = not self.menu_paused
+            if not self.menu_paused:
                 self.menu()
-            else:
-                self.menu_paused = True
 
         def get_menu_result(self):
             if self.menu_thread:
@@ -498,10 +542,10 @@ class Consolas:
                 self.menu_thread.join()
 
     class TextBox():
-        def __init__(self, parent, win, table_alignment = "c", clear=True, x=None, y=None, width=22, max_sumbol=22, type="str", Xdo="=", Ydo="="):
+        def __init__(self, parent, table_alignment="c", clear=True, x=None, y=None, width=22, max_sumbol=22, type="str", Xdo="=", Ydo="="):
             self.parent = parent
             self.config = parent.config
-            self.win = win
+            self.win = parent.win
             self.is_first_display = True
 
             self.menu_y = 0
@@ -516,6 +560,8 @@ class Consolas:
             self.type = type
             self.Xdo = Xdo
             self.Ydo = Ydo
+
+            self.paused = True
 
         def create_table_text_box(self, win, width):
             def separator_up_info():
@@ -543,51 +589,78 @@ class Consolas:
             return [self.menu_x + 3, self.menu_y + 1]
 
         def text_box(self):
-
             if self.clear:
                 self.win.clear()
                 self.win.refresh()
 
-            self.menu_x, self.menu_y, info_x, info_y = self.calculate_position(self.width+7, 3, self.table_alignment, x=self.x, y=self.y, Xdo=self.Xdo, Ydo=self.Ydo)
+            self.menu_x, self.menu_y = self.parent.calculate_position(
+                self.width+7, 3, self.alignment, x=self.x, y=self.y, Xdo=self.Xdo, Ydo=self.Ydo)
 
-            c_pozition = self.create_table_text_box(self.win, self.width)
-            self.win.move(c_pozition[1], c_pozition[0])
+            c_position = self.create_table_text_box(self.win, self.width)
+            self.win.move(c_position[1], c_position[0])
 
-            curses.curs_set(1)
             text = ""
-            c = 0
             while True:
-                c = self.win.getch()
+                event = keyboard.read_event()
 
-                if c == 8:
+                if event.event_type != keyboard.KEY_DOWN:
+                    continue
+
+                key = event.name
+
+                if key == 'backspace':
                     if len(text) > 0:
                         text = text[:-1]
-                        self.win.move(c_pozition[1], c_pozition[0] + len(text))
+                        self.win.move(c_position[1], c_position[0] + len(text))
                         self.win.addstr(' ')
                         audio_controller.play_random_sound_print()
-                elif c == 10:
+
+                elif key == 'enter':
                     self.win.clear()
                     self.win.refresh()
                     audio_controller.play_random_sound_print()
                     break
-                elif type == "str":
-                    if c < 256 and len(text) < self.max_sumbol and c != 8:
-                        text += chr(c)
-                        audio_controller.play_random_sound_print()
-                elif type == "int":
-                    if c in {48, 49, 50, 51, 52, 53, 54, 55, 56, 57} and len(text) < self.max_sumbol and c != 8:
-                        text += chr(c)
-                        audio_controller.play_random_sound_print()
-                elif type == "float":
-                    if c in {48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 46} and len(text) < self.max_sumbol and c != 8:
-                        text += chr(c)
-                        audio_controller.play_random_sound_print()
 
-                self.win.move(c_pozition[1], c_pozition[0])
-                self.win.addstr(text)
+                else:
+                    validators = {
+                        "str": lambda k: k.isprintable() or k == 'space',
+                        "int": lambda k: k.isdigit() or k.startswith('numpad'),
+                        "float": lambda k: k.isdigit() or k in {'.', ','} or k.startswith('numpad')
+                    }
+
+                    char = None
+                    if key == 'space':
+                        char = ' '
+                    elif key.startswith('numpad'):
+                        if key == 'numpad decimal':
+                            char = '.' if self.type == 'float' else None
+                        else:
+                            char = key.replace('numpad ', '')
+                    elif len(key) == 1:
+                        char = key.upper() if keyboard.is_pressed('shift') else key
+
+                    if char and validators.get(self.type, lambda _: False)(char):
+                        if len(text) < self.max_sumbol:
+                            if self.type == 'float':
+                                if char == ',':
+                                    char = '.'
+                                if char == '.' and '.' in text:
+                                    continue
+                            
+                            text += char
+                            audio_controller.play_random_sound_print()
+
+                self.win.move(c_position[1], c_position[0])
+                self.win.addstr(text.ljust(self.max_sumbol))
                 self.win.refresh()
 
                 self.is_first_display = False
-            curses.curs_set(0)
+
             self.is_first_display = True
             return text
+
+
+        def toggle_pause(self):
+            self.paused = not self.paused
+            if not self.paused:
+                self.text_box()

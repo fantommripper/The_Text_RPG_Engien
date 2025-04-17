@@ -5,21 +5,23 @@ from lib.Logger import logger
 
 class AutorsMenu():
     def __init__(self):
-        pass
+        self.consolas = lib_controller.consolas
+
+        self.autors_table = None
+        self.main_menu = None
 
     def run(self):
+        self.autors_table = self.consolas.create_table(
+            "Autors",
+            "perri?",
+            "fantomm",
+            y=8,
+            Ydo="-",
+            separator_positions=[0],
+            alignment={0: "c"},
+        )
         while True:
-            self.autors_table = lib_controller.consolas.create_table(
-                "Autors",
-                "perri",
-                "fantomm",
-                y=8,
-                Ydo="-",
-                separator_positions=[0],
-                alignment={0: "c"},
-            )
-
-            self.main_menu = lib_controller.consolas.create_menu(
+            self.main_menu = self.consolas.create_menu(
                 clear=False,
                 title="Menu",
                 options=["back"],
@@ -27,7 +29,6 @@ class AutorsMenu():
             )
 
             self.action = self.main_menu.get_menu_result()
-
 
             if self.action:
                 logger.info(f"Selected option: {self.action}")

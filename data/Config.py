@@ -20,7 +20,7 @@ class Config:
         self.language = data['language']
         self.anim = data['anim']
         self.loading = data['loading']
-        self.cheats = data['cheats'] 
+        self.cheats = data['cheats']
 
 
 

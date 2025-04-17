@@ -45,6 +45,7 @@ class App():
         config.loading += 1
 
         audio_controller.play_background_music()
+        menu_controller.show_multiply_widget_test()
         menu_controller.show_main_menu()
 
 
