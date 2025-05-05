@@ -8,6 +8,7 @@ class AudioController:
         pygame.mixer.init()
 
     def load_sound(self, filename):
+
         return pygame.mixer.Sound(os.path.join("data", "sound", filename))
 
     def play_sound(self, sound):

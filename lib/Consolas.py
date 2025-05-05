@@ -42,6 +42,7 @@ class Consolas:
 
         return self.table_x, self.table_y
 
+    #——————————————————————————————create widgets——————————————————————————————
 
     def fast_loading(self, speed=0.04):
         return self.Fastloading(self, speed)
@@ -61,6 +62,8 @@ class Consolas:
     def create_text_box(self, table_alignment="c", clear=True, x=None, y=None, width=22, max_sumbol=22, input_type="str", Xdo="=", Ydo="="):
         return self.TextBox(self, table_alignment, clear, x, y, width, max_sumbol, input_type, Xdo, Ydo)
 
+    #——————————————————————————————tab control——————————————————————————————
+
     def start_tab_control(self, widgets: list):
         self.tab_active = True
         current_focus = 0
@@ -77,8 +80,10 @@ class Consolas:
 
                 if c == 9:
                     current_focus = (current_focus + 1) % len(widgets)
+                    audio_controller.play_random_sound_print()
                 else:
                     current_focus = (current_focus - 1) % len(widgets)
+                    audio_controller.play_random_sound_print()
 
                 widgets[current_focus].toggle_pause()
 
@@ -90,8 +95,9 @@ class Consolas:
         self.win.keypad(False)
         curses.mousemask(0)
 
-    class Fastloading():
+    #——————————————————————————————widgets——————————————————————————————
 
+    class Fastloading():
         def __init__(self, parent, speed=0.04):
             self.parent = parent
             self.win = parent.win
@@ -373,10 +379,12 @@ class Consolas:
             self.parent = parent
             self.config = parent.config
             self.win = parent.win
+            self.option_handlers = options
+            self.options = list(options.keys())
+
             if additional_info is None:
                 additional_info = ["" for _ in options]
             self.title = title
-            self.options = options
             self.additional_info = additional_info
             self.alignment = alignment
             self.x = x
@@ -393,7 +401,6 @@ class Consolas:
             self.menu_paused = True
             self.menu_thread = None
             self.is_first_display = True
-            self.menu_result = None
 
             self.menu()
 
@@ -425,12 +432,14 @@ class Consolas:
 
             def separator_down_info():
                 win.addstr("Xx" + "¯" * (table_width + 2) + "xX\n", curses.color_pair(main_color))
+                if self.is_first_display:
+                    time.sleep(self.config.delayOutput)
+                    audio_controller.play_random_sound_print()
+                    win.refresh()
 
             separator_up_info()
-            audio_controller.play_random_sound_print()
             win.addstr("|| {:^{width}} ||\n".format(title, width=table_width), curses.color_pair(main_color))
             separator_center_info()
-            audio_controller.play_random_sound_print()
 
             for index, option in enumerate(options):
                 if index == selected_index and not self.menu_paused:
@@ -450,8 +459,6 @@ class Consolas:
                     win.refresh()
 
             separator_down_info()
-            audio_controller.play_random_sound_print()
-
 
         def menu(self):
             curses.curs_set(0)
@@ -501,7 +508,7 @@ class Consolas:
                     info_win.attroff(box_color)
                     self.display_info(info_win, additional_info, option)
 
-                self.create_table(menu_win, title, options, option, self.table_width)
+                self.create_table(menu_win, title, self.options, option, self.table_width)
                 menu_win.refresh()
                 if tips:
                     info_win.refresh()
@@ -511,17 +518,21 @@ class Consolas:
                     if event.event_type == keyboard.KEY_DOWN:
                         c = event.name
                         if c == 'up':
-                            option = (option - 1) % len(options)
+                            option = (option - 1) % len(self.options)
+                            audio_controller.play_random_sound_print()
                         elif c == 'down':
-                            option = (option + 1) % len(options)
+                            option = (option + 1) % len(self.options)
+                            audio_controller.play_random_sound_print()
                         elif c == 'enter':
+                            selected_option = self.options[option]
+                            self.option_handlers[selected_option]()
+                            audio_controller.play_random_sound_print()
                             break
                 else:
                     time.sleep(0.01)
 
                 self.is_first_display = False
 
-            self.menu_result = str(option)
             self.menu_active = False
 
 
@@ -529,12 +540,6 @@ class Consolas:
             self.menu_paused = not self.menu_paused
             if not self.menu_paused:
                 self.menu()
-
-        def get_menu_result(self):
-            if self.menu_thread:
-                self.menu_thread.join()
-            self.menu_paused = True
-            return self.menu_result
 
         def stop_menu(self):
             self.menu_active = False

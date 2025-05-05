@@ -46,7 +46,7 @@ class App():
 
         audio_controller.play_background_music()
         menu_controller.show_multiply_widget_test()
-        menu_controller.show_main_menu()
+        #menu_controller.show_main_menu()
 
 
 
