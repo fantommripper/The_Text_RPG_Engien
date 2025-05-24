@@ -10,6 +10,37 @@ from controller.LibController import lib_controller
 class MainMenu():
     def __init__(self):
         self.consolas = lib_controller.consolas
+        self.main_menu = None
+        self.tab_control = False
+
+    def _stop_menu(self):
+        self.consolas.stop_tab_control()
+        self.main_menu.stop()
+        self.tab_control = False
+
+    def _show_new_game_menu(self):
+        logger.info("new game")
+        self._stop_menu()
+        self._stop_menu()
+
+    def _show_load_game_menu(self):
+        logger.info("load game")
+        self._stop_menu()
+
+    def _show_options_menu(self):
+        logger.info("options")
+        self._stop_menu()
+        menu_controller.show_setting_menu()
+
+    def _show_autors_menu(self):
+        logger.info("autors")
+        self._stop_menu()
+        menu_controller.show_autors_menu()
+
+    def _exit_menu(self):
+        logger.info("exit")
+        self._stop_menu()
+        console_settings.exit_terminal()
 
     def run(self):
         self.display_logo = self.consolas.play_animation(
@@ -17,36 +48,22 @@ class MainMenu():
                        y=10,
                        Ydo="-"
         )
-        while True:
-            self.main_menu = self.consolas.create_menu(
-                            clear=False,
-                            title="Menu",
-                            options=["new game", "load game", "options", "autors", "exit"],
-                            tips=False,
-            )
-
-            self.action = self.main_menu.get_menu_result()
-
-            if self.action:
-                logger.info(f"Selected option: {self.action}")
-
-                if self.action == "0":
-                    logger.info("new game")
-
-                elif self.action == "1":
-                    logger.info("load game")
-
-                elif self.action == "2":
-                    logger.info("options")
-                    menu_controller.show_setting_menu()
-                
-                elif self.action == "3":
-                    logger.info("autors")
-                    menu_controller.show_autors_menu()
-
-                elif self.action == "4":
-                    logger.info("exit")
-                    console_settings.exit_terminal()
+        self.main_menu = self.consolas.create_menu(
+                        clear=False,
+                        title="Menu",
+                        options={
+                            "new game" : self._show_new_game_menu,
+                            "load game" : self._show_load_game_menu,
+                            "options" : self._show_options_menu,
+                            "autors" : self._show_autors_menu,
+                            "exit" : self._exit_menu
+                        },
+                        tips=False,
+        )
+        if not self.tab_control:
+            self.widgets_list = [self.main_menu]
+            self.consolas.start_tab_control(self.widgets_list)
+            self.tab_control = True
 
 main_menu = MainMenu()
 

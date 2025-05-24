@@ -7,106 +7,82 @@ from data.Config import config
 class SettingMenu:
     def __init__(self):
         self.consolas = lib_controller.consolas
+        self.menu = None
 
-        self.main_menu = None
-        self.delay_menu = None
-        self.language_menu = None
-        self.cheats_menu = None
+    def _stop_menu(self):
+        if self.menu:
+            self.menu.stop()
+
+    def _show_main_menu(self):
+        self._stop_menu()
+        menu_controller.show_main_menu()
+        save_manager.save_all_game_data()
 
     def run(self):
-        while True:
-            self.main_menu = self.consolas.create_menu(
-                title="Setting",
-                options=["output delay", "language", "cheats", "back"],
-                tips=False,
-            )
-            action = self.main_menu.get_menu_result()
-
-            if action is not None:
-                logger.info(f"Selected option: {action}")
-
-                if action == "0":
-                    self.set_output_delay()
-                elif action == "1":
-                    self.set_language()
-                elif action == "2":
-                    self.set_cheats()
-                elif action == "3":
-                    logger.info("back")
-                    save_manager.save_all_game_data()
-                    menu_controller.show_main_menu()
-                    break
-
-    def set_output_delay(self):
-        self.delay_menu = self.consolas.create_menu(
-            clear=False,
-            title="output delay",
-            options=["0", "0.01", "0.02", "0.03", "back"],
+        self._stop_menu()
+        self.menu = self.consolas.create_menu(
+            title="Settings",
+            options={
+                "output delay": self._output_delay_menu,
+                "language": self._language_menu,
+                "cheats": self._cheats_menu,
+                "back": self._show_main_menu
+            },
             tips=False,
-            Xdo="+",
-            Ydo="+",
-            x=2,
-            y=3,
         )
-        result = self.delay_menu.get_menu_result()
-        if result is not None:
-            if result == "0":
-                logger.info("output delay = 0")
-                config.delayOutput = 0
-            elif result == "1":
-                logger.info("output delay = 0.01")
-                config.delayOutput = 0.01
-            elif result == "2":
-                logger.info("output delay = 0.02")
-                config.delayOutput = 0.02
-            elif result == "3":
-                logger.info("output delay = 0.03")
-                config.delayOutput = 0.03
-            elif result == "4":
-                logger.info("back from output delay")
+        self.consolas.start_tab_control([self.menu])
 
+    def _output_delay_menu(self):
+        self._stop_menu()
+        def set_delay(delay):
+            config.delayOutput = float(delay)
+            logger.info(f"Set output delay: {delay}")
+            self.run()
+        self.menu = self.consolas.create_menu(
+            title="Output Delay",
+            options={
+                "0": lambda: set_delay("0"),
+                "0.01": lambda: set_delay("0.01"),
+                "0.02": lambda: set_delay("0.02"),
+                "0.03": lambda: set_delay("0.03"),
+                "back": self.run
+            },
+            tips=False,
+        )
+        self.consolas.start_tab_control([self.menu])
 
-    def set_language(self):
-        self.language_menu = self.consolas.create_menu(
-            clear=False,
+    def _language_menu(self):
+        self._stop_menu()
+        def set_lang(lang):
+            config.language = lang
+            logger.info(f"Set language: {lang}")
+            self.run()
+        self.menu = self.consolas.create_menu(
             title="Language",
-            options=["English", "back"],
+            options={
+                "English": lambda: set_lang("EN"),
+                "Русский": lambda: set_lang("RU"),
+                "back": self.run
+            },
             tips=False,
-            Xdo="+",
-            Ydo="+",
-            x=2,
-            y=1,
         )
-        result = self.language_menu.get_menu_result()
-        if result is not None:
-            if result == "0":
-                logger.info("Language = En")
-                config.language = "EN"
-            elif result == "1":
-                logger.info("back from language")
+        self.consolas.start_tab_control([self.menu])
 
-
-    def set_cheats(self):
-        self.cheats_menu = self.consolas.create_menu(
-            clear=False,
+    def _cheats_menu(self):
+        self._stop_menu()
+        def set_cheats(val):
+            config.cheats = val
+            logger.info(f"Set cheats: {val}")
+            self.run()
+        self.menu = self.consolas.create_menu(
             title="Cheats",
-            options=["On", "Off", "back"],
+            options={
+                "On": lambda: set_cheats(True),
+                "Off": lambda: set_cheats(False),
+                "back": self.run
+            },
             tips=False,
-            Xdo="+",
-            Ydo="+",
-            x=2,
-            y=2,
         )
-        result = self.cheats_menu.get_menu_result()
-        if result is not None:
-            if result == "0":
-                logger.info("Cheats On")
-                config.cheats = True
-            elif result == "1":
-                logger.info("Cheats Off")
-                config.cheats = False
-            elif result == "2":
-                logger.info("back from cheats")
-
+        self.consolas.start_tab_control([self.menu])
 
 setting_menu = SettingMenu()

@@ -547,8 +547,6 @@ class Consolas:
             self.option_handlers[selected_option]()
             audio_controller.play_random_print_sound()
 
-            self._update_menu()
-
 
         def toggle_pause(self):
             self.menu_paused = not self.menu_paused
