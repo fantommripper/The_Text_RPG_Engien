@@ -1,11 +1,12 @@
 import curses
-import threading
+import curses.ascii
 import time
 import random as r
 
 import keyboard
 
 from controller.AudioController import audio_controller
+from controller.LibController import lib_controller
 
 from lib.Logger import logger
 
@@ -14,8 +15,12 @@ class Consolas:
         self.config = config
         self.player = player
         self.win = win
-        self.tab_active = False
         self.current_focus = 0
+        self.input_controller = lib_controller.input_controller
+
+        self.tab_input_event = None
+        self.btab_input_event = None
+
         logger.info("Consolas initialized")
 
     def clear_window(self):
@@ -59,40 +64,40 @@ class Consolas:
     def create_menu(self, title, options, additional_info=None, alignment="c", x=None, y=None, color='cyan', tips=True, clear=True, info_width=50, table_width=22, Xdo="=", Ydo="="):
         return self.Menu(self, title, options, additional_info, alignment, x, y, color, tips, clear, info_width, table_width, Xdo, Ydo)
 
-    def create_text_box(self, table_alignment="c", clear=True, x=None, y=None, width=22, max_sumbol=22, input_type="str", Xdo="=", Ydo="="):
-        return self.TextBox(self, table_alignment, clear, x, y, width, max_sumbol, input_type, Xdo, Ydo)
+    def create_text_box(self, table_alignment="c", clear=True, x=None, y=None, width=22, max_sumbol=22, input_type="str", Xdo="=", Ydo="=", function=None):
+        return self.TextBox(self, table_alignment, clear, x, y, width, max_sumbol, input_type, Xdo, Ydo, function)
 
     #——————————————————————————————tab control——————————————————————————————
 
     def start_tab_control(self, widgets: list):
-        self.tab_active = True
-        current_focus = 0
-        widgets[current_focus].toggle_pause()
+        self.current_focus = 0
+        self.widgets = widgets
+        self.widgets[self.current_focus].toggle_pause()
 
-        self.win.keypad(True)
         curses.mousemask(1)
 
-        while self.tab_active:
-            c = self.win.getch()
+        self.tab_input_event = self.input_controller.add_input_event(curses.ascii.TAB, self.next_widget)
+        self.btab_input_event = self.input_controller.add_input_event(curses.KEY_BTAB, self.preceding_widget)
 
-            if c == 9 or c == curses.KEY_BTAB:
-                widgets[current_focus].toggle_pause()
+    def next_widget(self):
+        self.widgets[self.current_focus].toggle_pause()
 
-                if c == 9:
-                    current_focus = (current_focus + 1) % len(widgets)
-                    audio_controller.play_random_sound_print()
-                else:
-                    current_focus = (current_focus - 1) % len(widgets)
-                    audio_controller.play_random_sound_print()
+        self.current_focus = (self.current_focus + 1) % len(self.widgets)
+        audio_controller.play_random_print_sound()
 
-                widgets[current_focus].toggle_pause()
+        self.widgets[self.current_focus].toggle_pause()
 
-            elif c == 27:
-                self.stop_tab_control()
+    def preceding_widget(self):
+        self.widgets[self.current_focus].toggle_pause()
+
+        self.current_focus = (self.current_focus - 1) % len(self.widgets)
+        audio_controller.play_random_print_sound()
+
+        self.widgets[self.current_focus].toggle_pause()
 
     def stop_tab_control(self):
-        self.tab_active = False
-        self.win.keypad(False)
+        self.input_controller.remove_input_event(self.tab_input_event)
+        self.input_controller.remove_input_event(self.btab_input_event)
         curses.mousemask(0)
 
     #——————————————————————————————widgets——————————————————————————————
@@ -173,7 +178,7 @@ class Consolas:
             self._draw_table_content()
             self._draw_table_footer()
 
-            audio_controller.play_random_sound_print()
+            audio_controller.play_random_print_sound()
             self.win.refresh()
             logger.info("Table created")
 
@@ -183,7 +188,7 @@ class Consolas:
             elif self.style == "error":
                 self._separator_up_error()
 
-            audio_controller.play_random_sound_print()
+            audio_controller.play_random_print_sound()
             self.win.refresh()
             time.sleep(self.config.delayOutput)
 
@@ -250,7 +255,7 @@ class Consolas:
                 line = f"{border} {format_spec.format(text, width=self.table_width)} {border}"
                 self.win.addstr(self.table_y, self.table_x, line)
                 self.table_y += 1
-                audio_controller.play_random_sound_print()
+                audio_controller.play_random_print_sound()
             except ValueError as e:
                 logger.error(f"Error formatting line with text='{text}', format_spec='{format_spec}': {e}")
                 raise
@@ -312,7 +317,7 @@ class Consolas:
             for frame in self.frames:
                 self.win.addstr(table_y, table_x, frame)
                 if self.audio:
-                    audio_controller.play_random_sound_print()
+                    audio_controller.play_random_print_sound()
                 self.win.refresh()
                 time.sleep(self.delay)
                 table_y += 1
@@ -379,6 +384,7 @@ class Consolas:
             self.parent = parent
             self.config = parent.config
             self.win = parent.win
+            self.input_controller = parent.input_controller
             self.option_handlers = options
             self.options = list(options.keys())
 
@@ -402,6 +408,10 @@ class Consolas:
             self.menu_thread = None
             self.is_first_display = True
 
+            self.input_event_up_id = None
+            self.input_event_down_id = None
+            self.input_event_enter_id = None
+
             self.menu()
 
         def display_info(self, info_win, additional_info, option):
@@ -420,21 +430,21 @@ class Consolas:
                 win.addstr("Xx" + "_" * (table_width + 2) + "xX\n", curses.color_pair(main_color))
                 if self.is_first_display:
                     time.sleep(self.config.delayOutput)
-                    audio_controller.play_random_sound_print()
+                    audio_controller.play_random_print_sound()
                     win.refresh()
 
             def separator_center_info():
                 win.addstr("||" + "-" * (table_width + 2) + "||\n", curses.color_pair(main_color))
                 if self.is_first_display:
                     time.sleep(self.config.delayOutput)
-                    audio_controller.play_random_sound_print()
+                    audio_controller.play_random_print_sound()
                     win.refresh()
 
             def separator_down_info():
                 win.addstr("Xx" + "¯" * (table_width + 2) + "xX\n", curses.color_pair(main_color))
                 if self.is_first_display:
                     time.sleep(self.config.delayOutput)
-                    audio_controller.play_random_sound_print()
+                    audio_controller.play_random_print_sound()
                     win.refresh()
 
             separator_up_info()
@@ -455,7 +465,7 @@ class Consolas:
 
                 if self.is_first_display:
                     time.sleep(self.config.delayOutput)
-                    audio_controller.play_random_sound_print()
+                    audio_controller.play_random_print_sound()
                     win.refresh()
 
             separator_down_info()
@@ -476,9 +486,9 @@ class Consolas:
             bc = curses.COLOR_BLACK
 
             curses.start_color()
-            curses.init_pair(1, 7, bc)
+            curses.init_pair(1, curses.COLOR_WHITE, bc)
             curses.init_pair(2, col[self.color], bc)
-            curses.init_pair(3, 8, bc)
+            curses.init_pair(3, curses.COLOR_WHITE, bc)
 
             if self.clear:
                 self.win.clear()
@@ -486,71 +496,86 @@ class Consolas:
 
             self.menu_x, self.menu_y = self.parent.calculate_position(30, len(self.options) + 5, self.alignment, self.x, self.y, self.Xdo, self.Ydo)
 
-            menu_win = curses.newwin(len(self.options) + 5, 30, self.menu_y, self.menu_x)
-            info_win = None
+            self.menu_win = curses.newwin(len(self.options) + 5, 30, self.menu_y, self.menu_x)
+            self.info_win = None
             if self.tips:
                 self.info_x, self.info_y = self.menu_x + 35, self.menu_y
-                info_win = curses.newwin(len(self.options) + 5, self.info_width, self.info_y, self.info_x)
+                self.info_win = curses.newwin(len(self.options) + 5, self.info_width, self.info_y, self.info_x)
 
             self.menu_active = True
-            self.menu_thread = threading.Thread(target=self._menu_loop, args=(menu_win, info_win, self.title, self.options, self.additional_info, self.tips))
-            self.menu_thread.start()
+            self.option = 0
+            self._update_menu()
 
-        def _menu_loop(self, menu_win, info_win, title, options, additional_info, tips):
-            option = 0
-            while self.menu_active:
-                menu_win.erase()
-                if tips:
-                    info_win.erase()
-                    box_color = curses.color_pair(3) if self.menu_paused else curses.color_pair(1)
-                    info_win.attron(box_color)
-                    info_win.box()
-                    info_win.attroff(box_color)
-                    self.display_info(info_win, additional_info, option)
+            self.input_event_up_id = self.input_controller.add_input_event(curses.KEY_UP, self._option_up)
+            self.input_event_down_id = self.input_controller.add_input_event(curses.KEY_DOWN, self._option_down)
+            self.input_event_enter_id = [
+                self.input_controller.add_input_event(curses.KEY_ENTER, self._option_enter),
+                self.input_controller.add_input_event(10, self._option_enter),
+                self.input_controller.add_input_event(13, self._option_enter)
+            ]
 
-                self.create_table(menu_win, title, self.options, option, self.table_width)
-                menu_win.refresh()
-                if tips:
-                    info_win.refresh()
+        def _update_menu(self):
+            self.menu_win.erase()
+            if self.tips:
+                self.info_win.erase()
+                box_color = curses.color_pair(3) if self.menu_paused else curses.color_pair(1)
+                self.info_win.attron(box_color)
+                self.info_win.box()
+                self.info_win.attroff(box_color)
+                self.display_info(self.info_win, self.additional_info, self.option)
 
-                if not self.menu_paused:
-                    event = keyboard.read_event()
-                    if event.event_type == keyboard.KEY_DOWN:
-                        c = event.name
-                        if c == 'up':
-                            option = (option - 1) % len(self.options)
-                            audio_controller.play_random_sound_print()
-                        elif c == 'down':
-                            option = (option + 1) % len(self.options)
-                            audio_controller.play_random_sound_print()
-                        elif c == 'enter':
-                            selected_option = self.options[option]
-                            self.option_handlers[selected_option]()
-                            audio_controller.play_random_sound_print()
-                            break
-                else:
-                    time.sleep(0.01)
+            self.create_table(self.menu_win, self.title, self.options, self.option, self.table_width)
+            self.menu_win.refresh()
+            if self.tips:
+                self.info_win.refresh()
+            self.is_first_display = False
 
-                self.is_first_display = False
+        def _option_up(self):
+            self.option = (self.option - 1) % len(self.options)
+            audio_controller.play_random_print_sound()
 
-            self.menu_active = False
+            self._update_menu()
+
+        def _option_down(self):
+            self.option = (self.option + 1) % len(self.options)
+            audio_controller.play_random_print_sound()
+
+            self._update_menu()
+
+        def _option_enter(self):
+            selected_option = self.options[self.option]
+            self.option_handlers[selected_option]()
+            audio_controller.play_random_print_sound()
+
+            self._update_menu()
 
 
         def toggle_pause(self):
             self.menu_paused = not self.menu_paused
-            if not self.menu_paused:
-                self.menu()
+            self._update_menu()
+            self.input_controller.set_input_event_pause(self.input_event_up_id, self.menu_paused)
+            self.input_controller.set_input_event_pause(self.input_event_down_id, self.menu_paused)
 
-        def stop_menu(self):
+            for eid in self.input_event_enter_id:
+                self.input_controller.set_input_event_pause(eid, self.menu_paused)
+
+            if not self.menu_paused:
+                curses.curs_set(0)
+
+        def stop(self):
             self.menu_active = False
-            if self.menu_thread:
-                self.menu_thread.join()
+            self._update_menu()
+            self.input_controller.remove_input_event(self.input_event_up_id)
+            self.input_controller.remove_input_event(self.input_event_down_id)
+            for eid in self.input_event_enter_id:
+                self.input_controller.remove_input_event(eid)
 
     class TextBox():
-        def __init__(self, parent, table_alignment="c", clear=True, x=None, y=None, width=22, max_sumbol=22, type="str", Xdo="=", Ydo="="):
+        def __init__(self, parent, table_alignment="c", clear=True, x=None, y=None, width=22, max_sumbol=22, type="str", Xdo="=", Ydo="=", function=None):
             self.parent = parent
             self.config = parent.config
             self.win = parent.win
+            self.input_controller = parent.input_controller
             self.is_first_display = True
 
             self.menu_y = 0
@@ -567,105 +592,113 @@ class Consolas:
             self.Ydo = Ydo
 
             self.paused = True
+            self.function = function
+
+            self._text = ""
+            self._done = False
+            self._input_event_ids = []
+
+            self._c_position = None
+
+            self.text_box()
 
         def create_table_text_box(self, win, width):
             def separator_up_info():
                 win.addstr(self.menu_y, self.menu_x, "Xx" + "_" * (width + 2) + "xX\n")
                 if self.is_first_display:
                     time.sleep(self.config.delayOutput)
-                    audio_controller.play_random_sound_print()
+                    audio_controller.play_random_print_sound()
                     win.refresh()
 
             def separator_down_info():
                 win.addstr(self.menu_y + 2, self.menu_x , "Xx" + "¯" * (width + 2) + "xX\n")
                 if self.is_first_display:
                     time.sleep(self.config.delayOutput)
-                    audio_controller.play_random_sound_print()
+                    audio_controller.play_random_print_sound()
                     win.refresh()
 
             separator_up_info()
             win.addstr(self.menu_y + 1, self.menu_x, "||" + " " * (width + 2) + "||")
             if self.is_first_display:
-                    time.sleep(self.config.delayOutput)
-                    audio_controller.play_random_sound_print()
-                    win.refresh()
+                time.sleep(self.config.delayOutput)
+                audio_controller.play_random_print_sound()
+                win.refresh()
             separator_down_info()
 
             return [self.menu_x + 3, self.menu_y + 1]
+
+        def _on_key(self, key):
+            if self.paused:
+                return
+
+            if key in (curses.KEY_ENTER, 10, 13):
+                self._done = True
+                self.win.clear()
+                self.win.refresh()
+                audio_controller.play_random_print_sound()
+
+                for eid in self._input_event_ids:
+                    self.input_controller.remove_input_event(eid)
+
+                self.is_first_display = True
+
+                if self.function:
+                    self.function(self._text)
+                return
+
+            elif key in (curses.KEY_BACKSPACE, 127, 8, 263):
+                if len(self._text) > 0:
+                    self._text = self._text[:-1]
+                    audio_controller.play_random_print_sound()
+            elif 32 <= key <= 126:
+                char = chr(key)
+                if self.type == "int" and not char.isdigit():
+                    return
+                if self.type == "float" and not (char.isdigit() or char in ".,"):
+                    return
+                if len(self._text) < self.max_sumbol:
+                    if self.type == "float" and char == ',':
+                        char = '.'
+                    if self.type == "float" and char == '.' and '.' in self._text:
+                        return
+                    self._text += char
+                    audio_controller.play_random_print_sound()
+
+            self.win.move(self._c_position[1], self._c_position[0])
+            self.win.addstr(self._text.ljust(self.max_sumbol))
+            self.win.move(self._c_position[1], self._c_position[0] + len(self._text))
+            self.win.refresh()
 
         def text_box(self):
             if self.clear:
                 self.win.clear()
                 self.win.refresh()
 
+            curses.curs_set(1)
+
             self.menu_x, self.menu_y = self.parent.calculate_position(
                 self.width+7, 3, self.alignment, x=self.x, y=self.y, Xdo=self.Xdo, Ydo=self.Ydo)
 
-            c_position = self.create_table_text_box(self.win, self.width)
-            self.win.move(c_position[1], c_position[0])
+            self._c_position = self.create_table_text_box(self.win, self.width)
+            self.win.move(self._c_position[1], self._c_position[0])
 
-            text = ""
-            while True:
-                event = keyboard.read_event()
+            self._text = ""
+            self._done = False
 
-                if event.event_type != keyboard.KEY_DOWN:
-                    continue
-
-                key = event.name
-
-                if key == 'backspace':
-                    if len(text) > 0:
-                        text = text[:-1]
-                        self.win.move(c_position[1], c_position[0] + len(text))
-                        self.win.addstr(' ')
-                        audio_controller.play_random_sound_print()
-
-                elif key == 'enter':
-                    self.win.clear()
-                    self.win.refresh()
-                    audio_controller.play_random_sound_print()
-                    break
-
-                else:
-                    validators = {
-                        "str": lambda k: k.isprintable() or k == 'space',
-                        "int": lambda k: k.isdigit() or k.startswith('numpad'),
-                        "float": lambda k: k.isdigit() or k in {'.', ','} or k.startswith('numpad')
-                    }
-
-                    char = None
-                    if key == 'space':
-                        char = ' '
-                    elif key.startswith('numpad'):
-                        if key == 'numpad decimal':
-                            char = '.' if self.type == 'float' else None
-                        else:
-                            char = key.replace('numpad ', '')
-                    elif len(key) == 1:
-                        char = key.upper() if keyboard.is_pressed('shift') else key
-
-                    if char and validators.get(self.type, lambda _: False)(char):
-                        if len(text) < self.max_sumbol:
-                            if self.type == 'float':
-                                if char == ',':
-                                    char = '.'
-                                if char == '.' and '.' in text:
-                                    continue
-                            
-                            text += char
-                            audio_controller.play_random_sound_print()
-
-                self.win.move(c_position[1], c_position[0])
-                self.win.addstr(text.ljust(self.max_sumbol))
-                self.win.refresh()
-
-                self.is_first_display = False
-
-            self.is_first_display = True
-            return text
-
+            self._input_event_ids = []
+            for k in list(range(32, 127)) + [curses.KEY_ENTER, 10, 13, curses.KEY_BACKSPACE, 127, 8]:
+                eid = self.input_controller.add_input_event(k, lambda k=k: self._on_key(k))
+                self._input_event_ids.append(eid)
 
         def toggle_pause(self):
             self.paused = not self.paused
+            for eid in self._input_event_ids:
+                self.input_controller.set_input_event_pause(eid, self.paused)
             if not self.paused:
-                self.text_box()
+                curses.curs_set(1)
+
+        def stop(self):
+            self._done = True
+            for eid in self._input_event_ids:
+                self.input_controller.remove_input_event(eid)
+            self.is_first_display = True

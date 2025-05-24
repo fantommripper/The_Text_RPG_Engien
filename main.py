@@ -1,4 +1,5 @@
 import curses
+import time
 
 from lib.ConsoleSettings import console_settings
 from lib.Logger import logger
@@ -6,7 +7,6 @@ from lib.SaveManager import save_manager
 
 from controller.MenuController import menu_controller
 from controller.LibController import lib_controller
-from controller.InputController import input_controller
 from controller.AudioController import audio_controller
 
 from data.Config import config
@@ -26,11 +26,11 @@ class App():
             return
 
         self.win.keypad(True)
+        self.win.nodelay(True)
         self.win.clear()
         self.win.refresh()
 
         lib_controller.load_lib(self.win)
-        input_controller.add_all_hotkeys()
 
         self.run()
 
@@ -44,11 +44,14 @@ class App():
 
         config.loading += 1
 
-        audio_controller.play_background_music()
+        audio_controller.play_music("background")
         menu_controller.show_multiply_widget_test()
-        #menu_controller.show_main_menu()
 
-
+        while True:
+            c = self.win.getch()
+            if c != -1:
+                lib_controller.input_controller.handle_key(c)
+            time.sleep(0.01)
 
 if __name__ == '__main__':
     try:

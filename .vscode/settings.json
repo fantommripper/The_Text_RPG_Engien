@@ -8,6 +8,7 @@
         "attron",
         "autors",
         "bkgd",
+        "BTAB",
         "consolas",
         "doupdate",
         "endwin",
@@ -15,10 +16,13 @@
         "Fastloading",
         "getch",
         "getmaxyx",
+        "Gmusic",
         "icol",
         "lenght",
         "mousemask",
         "newwin",
+        "nodelay",
+        "noecho",
         "noutrefresh",
         "numpad",
         "perri",
@@ -27,6 +31,11 @@
         "stdscr",
         "sumbol",
         "terminalium"
-    ]
+    ],
+    "python.testing.pytestArgs": [
+        "."
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
     
 }

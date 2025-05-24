@@ -1,71 +1,101 @@
 import pygame
 import os
-import random as r
+import random
+from lib.Logger import logger
 
 class AudioController:
     def __init__(self):
         self.volume = 0.5
-        pygame.mixer.init()
+        self.sounds = {}
+        self.music_volume = 0.5
+        try:
+            pygame.mixer.init()
+            self._load_resources()
+            logger.info("AudioController initialized successfully.")
+        except Exception as e:
+            logger.error(f"AudioController initialization error: {e}", exc_info=True)
 
-    def load_sound(self, filename):
+    def _get_sound_path(self, filename):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(base_dir, "..", "data", "sound", filename)
 
-        return pygame.mixer.Sound(os.path.join("data", "sound", filename))
+    def _load_resources(self):
+        sound_files = ['print.wav', 'print2.wav']
+        for sound_file in sound_files:
+            try:
+                self.sounds[sound_file] = self._load_sound(sound_file)
+            except Exception as e:
+                logger.error(f"Error loading sound {sound_file}: {e}", exc_info=True)
 
-    def play_sound(self, sound):
-        sound.play()
+        for sound in self.sounds.values():
+            try:
+                sound.set_volume(0.1)
+            except Exception as e:
+                logger.error(f"Error setting volume for sound: {e}", exc_info=True)
+
+        self.music_tracks = {
+            'background': 'BGmusic.wav',
+            'battle': 'Battle Music.wav',
+            'shop': 'Shop Music.wav',
+            'forest': 'Forest Music.wav',
+            'void': 'The Void.wav'
+        }
+
+    def _load_sound(self, filename):
+        path = self._get_sound_path(filename)
+        if not os.path.isfile(path):
+            raise FileNotFoundError(f"Sound file not found: {path}")
+        return pygame.mixer.Sound(path)
+
+    def play_sound(self, sound_name):
+        try:
+            if sound_name in self.sounds:
+                self.sounds[sound_name].play()
+            else:
+                logger.warning(f"Sound {sound_name} not found in self.sounds")
+        except Exception as e:
+            logger.error(f"Error playing sound {sound_name}: {e}", exc_info=True)
+
+    def play_random_print_sound(self):
+        sound_name = random.choice(['print.wav', 'print2.wav'])
+        self.play_sound(sound_name)
+
+    def play_music(self, track_name, loops=-1):
+        try:
+            if track_name not in self.music_tracks:
+                logger.warning(f"Track {track_name} not found in music_tracks")
+                return
+
+            pygame.mixer.music.stop()
+            path = self._get_sound_path(self.music_tracks[track_name])
+            if not os.path.isfile(path):
+                logger.error(f"Music file not found: {path}")
+                return
+            pygame.mixer.music.load(path)
+            pygame.mixer.music.set_volume(self.music_volume)
+            pygame.mixer.music.play(loops)
+        except Exception as e:
+            logger.error(f"Error playing music {track_name}: {e}", exc_info=True)
 
     def stop_music(self):
-        pygame.mixer.music.stop()
+        try:
+            pygame.mixer.music.stop()
+        except Exception as e:
+            logger.error(f"Error stopping music: {e}", exc_info=True)
 
-    def play_sound_print(self):
-        self.print_sound = self.load_sound("print.wav")
-        self.print_sound.set_volume(0.1)
-        self.play_sound(self.print_sound)
+    def set_volume(self, volume):
+        self.volume = max(0.0, min(1.0, volume))
+        for sound in self.sounds.values():
+            try:
+                sound.set_volume(self.volume)
+            except Exception as e:
+                logger.error(f"Error setting volume for sound: {e}", exc_info=True)
 
-    def play_sound_print2(self):
-        self.print2_sound = self.load_sound("print2.wav")
-        self.print2_sound.set_volume(0.1)
-        self.play_sound(self.print2_sound)
-
-    def play_random_sound_print(self):
-        self.sound = r.choice(["print.wav", "print2.wav"])
-        self.sound = self.load_sound(self.sound)
-        self.sound.set_volume(0.1)
-        self.play_sound(self.sound)
-
-    def play_background_music(self):
-        self.stop_music()
-
-        bg_music_path = os.path.join("data", "sound", "BGmusic.wav")
-        pygame.mixer.music.load(bg_music_path)
-        pygame.mixer.music.play(-1)
-
-    def play_battle_music(self):
-        self.stop_music()
-
-        battle_music_path = os.path.join("data", "sound", "Battle Music.wav")
-        pygame.mixer.music.load(battle_music_path)
-        pygame.mixer.music.play(-1)
-
-    def play_shop_music(self):
-        self.stop_music()
-
-        shop_music_path = os.path.join("data", "sound", "Shop Music.wav")
-        pygame.mixer.music.load(shop_music_path)
-        pygame.mixer.music.play(-1)
-
-    def play_forest_music(self):
-        self.stop_music()
-
-        forest_music_path = os.path.join("data", "sound", "Forest Music.wav")
-        pygame.mixer.music.load(forest_music_path)
-        pygame.mixer.music.play(-1)
-
-    def play_the_void(self):
-        self.stop_music()
-
-        the_void_music_path = os.path.join("data", "sound", "The Void.wav")
-        pygame.mixer.music.load(the_void_music_path)
-        pygame.mixer.music.play(-1)
+    def set_music_volume(self, volume):
+        self.music_volume = max(0.0, min(1.0, volume))
+        try:
+            pygame.mixer.music.set_volume(self.music_volume)
+        except Exception as e:
+            logger.error(f"Error setting music volume: {e}", exc_info=True)
 
 audio_controller = AudioController()
