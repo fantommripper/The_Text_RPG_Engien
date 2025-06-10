@@ -1,9 +1,8 @@
 from lib.Logger import logger
 
 class InputController:
-    def __init__(self, win):
+    def __init__(self):
         self._events = []
-        self._win = win
 
     def handle_key(self, c):
         for event in self._events:
@@ -19,12 +18,21 @@ class InputController:
 
     class InputEvent:
         def __init__(self, controller):
-            self.id = controller._generate_id()
+            self.controller = controller
+
+            self.id = self.controller._generate_id()
             self.key = None
             self.function = None
             self.pause = False
 
-    def add_input_event(self, key, function, pause=False):
+        def set_pause(self, pause):
+            self.pause = pause
+
+        def remove(self):
+            self.controller.remove_input_event(self.id)
+            del self
+
+    def add_input_event(self, key, function, pause=False) -> InputEvent:
         event = self.InputEvent(self)
         if isinstance(key, str) and len(key) == 1:
             event.key = ord(key)
@@ -33,7 +41,7 @@ class InputController:
         event.function = function
         event.pause = pause
         self._events.append(event)
-        return event.id
+        return event
 
     def remove_input_event(self, id):
         self._events = [event for event in self._events if event.id != id]

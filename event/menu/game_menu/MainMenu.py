@@ -11,17 +11,14 @@ class MainMenu():
     def __init__(self):
         self.consolas = lib_controller.consolas
         self.main_menu = None
-        self.tab_control = False
 
     def _stop_menu(self):
-        self.consolas.stop_tab_control()
         self.main_menu.stop()
-        self.tab_control = False
 
     def _show_new_game_menu(self):
         logger.info("new game")
         self._stop_menu()
-        self._stop_menu()
+        menu_controller.show_hero_create_menu()
 
     def _show_load_game_menu(self):
         logger.info("load game")
@@ -60,10 +57,6 @@ class MainMenu():
                         },
                         tips=False,
         )
-        if not self.tab_control:
-            self.widgets_list = [self.main_menu]
-            self.consolas.start_tab_control(self.widgets_list)
-            self.tab_control = True
 
 main_menu = MainMenu()
 

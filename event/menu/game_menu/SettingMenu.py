@@ -28,9 +28,8 @@ class SettingMenu:
                 "cheats": self._cheats_menu,
                 "back": self._show_main_menu
             },
-            tips=False,
+            tips=False
         )
-        self.consolas.start_tab_control([self.menu])
 
     def _output_delay_menu(self):
         self._stop_menu()
@@ -38,6 +37,7 @@ class SettingMenu:
             config.delayOutput = float(delay)
             logger.info(f"Set output delay: {delay}")
             self.run()
+
         self.menu = self.consolas.create_menu(
             title="Output Delay",
             options={
@@ -47,9 +47,8 @@ class SettingMenu:
                 "0.03": lambda: set_delay("0.03"),
                 "back": self.run
             },
-            tips=False,
+            tips=False
         )
-        self.consolas.start_tab_control([self.menu])
 
     def _language_menu(self):
         self._stop_menu()
@@ -57,6 +56,7 @@ class SettingMenu:
             config.language = lang
             logger.info(f"Set language: {lang}")
             self.run()
+
         self.menu = self.consolas.create_menu(
             title="Language",
             options={
@@ -64,9 +64,8 @@ class SettingMenu:
                 "Русский": lambda: set_lang("RU"),
                 "back": self.run
             },
-            tips=False,
+            tips=False
         )
-        self.consolas.start_tab_control([self.menu])
 
     def _cheats_menu(self):
         self._stop_menu()
@@ -74,6 +73,7 @@ class SettingMenu:
             config.cheats = val
             logger.info(f"Set cheats: {val}")
             self.run()
+
         self.menu = self.consolas.create_menu(
             title="Cheats",
             options={
@@ -81,8 +81,7 @@ class SettingMenu:
                 "Off": lambda: set_cheats(False),
                 "back": self.run
             },
-            tips=False,
+            tips=False
         )
-        self.consolas.start_tab_control([self.menu])
 
 setting_menu = SettingMenu()

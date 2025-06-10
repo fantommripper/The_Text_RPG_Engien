@@ -270,5 +270,5 @@ class World():
         ]
 
 alchemist = Alchemist()
-dlacksmith = Blacksmith()
+blacksmith = Blacksmith()
 world = World()

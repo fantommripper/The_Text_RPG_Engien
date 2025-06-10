@@ -12,7 +12,7 @@ class LibController():
 
     def load_input_controller(self, win):
         from lib.InputController import InputController
-        self.input_controller = InputController(win)
+        self.input_controller = InputController()
 
     def load_lib(self, win):
         self.load_input_controller(win)
