@@ -4,6 +4,7 @@ import time
 from lib.ConsoleSettings import console_settings
 from lib.Logger import logger
 from lib.SaveManager import save_manager
+from lib.Localization import loc
 
 from controller.MenuController import menu_controller
 from controller.LibController import lib_controller
@@ -36,6 +37,7 @@ class App():
 
     def run(self):
         save_manager.load_all_game_data()
+        loc.set_language(config.language)
 
         if config.loading == 0:
             lib_controller.consolas.loading_animation()
@@ -45,7 +47,6 @@ class App():
         config.loading += 1
 
         audio_controller.play_music("background")
-        #menu_controller.show_multiply_widget_test()
         menu_controller.show_main_menu()
 
         while True:

@@ -2,7 +2,10 @@
     "python.REPL.enableREPLSmartSend": false,
     "cSpell.words": [
         "главному",
+        "коментарии",
+        "надо",
         "Отрисовка",
+        "работает",
         "Центрирование",
         "addch",
         "addstr",

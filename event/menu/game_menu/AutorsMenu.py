@@ -2,6 +2,7 @@ from controller.LibController import lib_controller
 from controller.MenuController import menu_controller
 
 from lib.Logger import logger
+from lib.Localization import loc
 
 class AutorsMenu():
     def __init__(self):
@@ -16,7 +17,7 @@ class AutorsMenu():
 
     def run(self):
         self.autors_table = self.consolas.create_table(
-            "Autors",
+            loc.t("autors"),
             "perri?",
             "fantomm",
             tableAlignment="c",
@@ -28,8 +29,8 @@ class AutorsMenu():
 
         self.main_menu = self.consolas.create_menu(
             clear=False,
-            title="Menu",
-            options={"back" : self._show_main_menu},
+            title=loc.t("menu"),
+            options={loc.t("back") : self._show_main_menu},
             tips=False
         )
 

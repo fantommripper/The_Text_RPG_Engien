@@ -1,5 +1,6 @@
 from lib.ConsoleSettings import console_settings
 from lib.Logger import logger
+from lib.Localization import loc
 
 from data.Logo import logo
 
@@ -47,13 +48,13 @@ class MainMenu():
         )
         self.main_menu = self.consolas.create_menu(
                         clear=False,
-                        title="Menu",
+                        title=loc.t("menu"),
                         options={
-                            "new game" : self._show_new_game_menu,
-                            "load game" : self._show_load_game_menu,
-                            "options" : self._show_options_menu,
-                            "autors" : self._show_autors_menu,
-                            "exit" : self._exit_menu
+                            loc.t("new_game") : self._show_new_game_menu,
+                            loc.t("load_game") : self._show_load_game_menu,
+                            loc.t("options") : self._show_options_menu,
+                            loc.t("autors") : self._show_autors_menu,
+                            loc.t("exit") : self._exit_menu
                         },
                         tips=False,
         )

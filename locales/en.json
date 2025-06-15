@@ -1,0 +1,34 @@
+{
+    "back": "Back",
+    "on": "On",
+    "off": "Off",
+    "yes": "Yes",
+    "no": "No",
+    "menu": "Menu",
+    "enter": "Enter",
+
+    "new_game": "New Game",
+    "load_game": "Load Game",
+    "options": "Options",
+    "autors": "Autors",
+    "exit": "Exit",
+
+    "output_delay": "Output Delay",
+    "language": "Language",
+    "cheats": "Cheats",
+
+    "name": "Name",
+    "class": "Class",
+    "race": "Race",
+    "entry_name": "Entry Name",
+    "entry_class": "Entry Class",
+    "entry_race": "Entry Race",
+    "swordsman": "Swordsman",
+    "archer": "Archer",
+    "magician": "Magician",
+    "thief": "Thief",
+    "human": "Human",
+    "kobold": "Kobold",
+    "owlin": "Owlin",
+    "naga": "Naga"
+}

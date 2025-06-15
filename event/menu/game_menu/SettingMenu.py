@@ -1,7 +1,10 @@
 from lib.Logger import logger
+from lib.SaveManager import save_manager
+from lib.Localization import loc
+
 from controller.MenuController import menu_controller
 from controller.LibController import lib_controller
-from lib.SaveManager import save_manager
+
 from data.Config import config
 
 class SettingMenu:
@@ -21,12 +24,12 @@ class SettingMenu:
     def run(self):
         self._stop_menu()
         self.menu = self.consolas.create_menu(
-            title="Settings",
+            title=loc.t("options"),
             options={
-                "output delay": self._output_delay_menu,
-                "language": self._language_menu,
-                "cheats": self._cheats_menu,
-                "back": self._show_main_menu
+                loc.t("output_delay"): self._output_delay_menu,
+                loc.t("language"): self._language_menu,
+                loc.t("cheats"): self._cheats_menu,
+                loc.t("back"): self._show_main_menu
             },
             tips=False
         )
@@ -39,13 +42,13 @@ class SettingMenu:
             self.run()
 
         self.menu = self.consolas.create_menu(
-            title="Output Delay",
+            title=loc.t("output_delay"),
             options={
                 "0": lambda: set_delay("0"),
                 "0.01": lambda: set_delay("0.01"),
                 "0.02": lambda: set_delay("0.02"),
                 "0.03": lambda: set_delay("0.03"),
-                "back": self.run
+                loc.t("back"): self.run
             },
             tips=False
         )
@@ -54,15 +57,16 @@ class SettingMenu:
         self._stop_menu()
         def set_lang(lang):
             config.language = lang
+            loc.set_language(config.language)
             logger.info(f"Set language: {lang}")
             self.run()
 
         self.menu = self.consolas.create_menu(
-            title="Language",
+            loc.t("language"),
             options={
                 "English": lambda: set_lang("EN"),
                 "Русский": lambda: set_lang("RU"),
-                "back": self.run
+                loc.t("back"): self.run
             },
             tips=False
         )
@@ -75,11 +79,11 @@ class SettingMenu:
             self.run()
 
         self.menu = self.consolas.create_menu(
-            title="Cheats",
+            loc.t("cheats"),
             options={
-                "On": lambda: set_cheats(True),
-                "Off": lambda: set_cheats(False),
-                "back": self.run
+                loc.t("on"): lambda: set_cheats(True),
+                loc.t("off"): lambda: set_cheats(False),
+                loc.t("back"): self.run
             },
             tips=False
         )

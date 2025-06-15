@@ -2,6 +2,7 @@ from controller.LibController import lib_controller
 from controller.MenuController import menu_controller
 
 from lib.Logger import logger
+from lib.Localization import loc
 
 from data.Config import config
 from data.Player import player
@@ -23,6 +24,9 @@ class HeroCreateMenu():
         self.player_class = "None"
         self.player_race = "None"
 
+        self.displayed_class = "None"
+        self.displayed_race = "None"
+
     def _stop_menu(self):
         self.tab_control = False
         self.entry_name_TextBox.stop()
@@ -31,8 +35,11 @@ class HeroCreateMenu():
         self.chosen_enter_Menu.stop()
 
     def _update_output_table(self):
+        if self.player_class != "None": self.displayed_class = loc.t(self.player_class)
+        if self.player_race != "None": self.displayed_race = loc.t(self.player_race.lower())
+
         self.output_Table = self.consolas.create_table(
-            f"Name: {self.player_name} | Class: {self.player_class} | race: {self.player_race}",
+            f"{loc.t("name")}: {self.player_name} | {loc.t("class")}: {self.displayed_class} | {loc.t("race")}: {self.displayed_race}",
             width=60,
             Ydo="-",
             y=10,
@@ -42,12 +49,10 @@ class HeroCreateMenu():
         )
 
     def _choose_class(self, class_name):
-        player.set_class(class_name)
         self.player_class = class_name
         self._update_output_table()
 
     def _choose_race(self, race_name):
-        player.set_race(race_name)
         self.player_race = race_name
         self._update_output_table()
 
@@ -57,15 +62,19 @@ class HeroCreateMenu():
         self._update_output_table()
 
     def _enter_hero(self):
-        pass
+        player.set_class(self.player_class)
+        player.set_race(self.player_race)
 
     def _back_to_main_menu(self):
         self._stop_menu()
         menu_controller.show_main_menu()
 
     def run(self):
+        if self.player_class != "None": self.displayed_class = loc.t(self.player_class)
+        if self.player_race != "None": self.displayed_race = loc.t(self.player_race.lower())
+
         self.output_Table = self.consolas.create_table(
-            f"Name: {self.player_name} | Class: {self.player_class} | race: {self.player_race}",
+            f"{loc.t("name")}: {self.player_name} | {loc.t("class")}: {self.displayed_class} | {loc.t("race")}: {self.displayed_race}",
             width=60,
             Ydo="-",
             y=10,
@@ -73,7 +82,7 @@ class HeroCreateMenu():
         )
 
         self.tips_entry_name_Table = self.consolas.create_table(
-            "Entry Name",
+            loc.t("entry_name"),
             width=15,
             Ydo="-",
             Xdo="-",
@@ -95,12 +104,12 @@ class HeroCreateMenu():
         )
 
         self.chosen_class_Menu = self.consolas.create_menu(
-            title="Choose Class",
+            title=loc.t("entry_class"),
             options={
-                "swordsman": lambda: self._choose_class("swordsman"),
-                "magician": lambda: self._choose_class("magician"),
-                "thief": lambda: self._choose_class("thief"),
-                "archer": lambda: self._choose_class("archer"),
+                loc.t("swordsman"): lambda: self._choose_class("swordsman"),
+                loc.t("magician"): lambda: self._choose_class("magician"),
+                loc.t("thief"): lambda: self._choose_class("thief"),
+                loc.t("archer"): lambda: self._choose_class("archer"),
             },
             Ydo="-",
             Xdo="+",
@@ -111,12 +120,12 @@ class HeroCreateMenu():
         )
 
         self.chosen_race_Menu = self.consolas.create_menu(
-            title="Choose Race",
+            title=loc.t("entry_race"),
             options={
-                "Human": lambda: self._choose_race("Human"),
-                "Kobold": lambda: self._choose_race("Kobold"),
-                "Owlin": lambda: self._choose_race("Owlin"),
-                "Naga": lambda: self._choose_race("Naga"),
+                loc.t("human"): lambda: self._choose_race("Human"),
+                loc.t("kobold"): lambda: self._choose_race("Kobold"),
+                loc.t("owlin"): lambda: self._choose_race("Owlin"),
+                loc.t("naga"): lambda: self._choose_race("Naga"),
             },
             Ydo="+",
             Xdo="+",
@@ -126,10 +135,10 @@ class HeroCreateMenu():
             clear=False
         )
         self.chosen_enter_Menu = self.consolas.create_menu(
-            title="Enter",
+            title=loc.t("enter"),
             options={
-                "enter": self._enter_hero,
-                "back": self._back_to_main_menu,
+                loc.t("enter"): self._enter_hero,
+                loc.t("back"): self._back_to_main_menu,
             },
             Ydo="+",
             Xdo="-",

@@ -1,7 +1,7 @@
 class Config:
     def __init__(self):
         self.delayOutput = 0.02
-        self.language = "EN"
+        self.language = "en"
         self.anim = True
         self.loading = 0
         self.cheats = True

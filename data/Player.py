@@ -1,5 +1,10 @@
 from .races import AVAILABLE_RACES, Race
 from .classes import AVAILABLE_CLASSES, HeroClass
+from .Effects import Effects
+from .Item import Item
+from .Spells import Spells
+
+from typing import List
 
 class Player:
     def __init__(self):
@@ -8,31 +13,31 @@ class Player:
         self._class: HeroClass | None = None
         
         # Base stats
-        self.Dm = 10
-        self.Hp = 70
-        self.maxHp = 70
-        self.gold = 0
-        self.Xp = 0
-        self.XpToLv = 50
-        self.Lv = 0
-        self.improvementStar = 0
-        self.points = 0
-        self.layer = 1
-        self.playerMap = True
-        self.playerMonstronomicon = False
-        self.Px = 0
-        self.Py = 0
-        self.Effects = []
-        self.mana = 50
-        self.maxMana = 50
-        self.speed = 1
-        self.item = []
-        self.helmet = ""
-        self.chestplate = ""
-        self.weapon = ""
-        self.weapon2 = ""
-        self.luck = 0
-        self.spells = [0]
+        self.Dm:int = 10
+        self.Hp:int = 70
+        self.maxHp:int = 70
+        self.gold:int = 0
+        self.Xp:int = 0
+        self.XpToLv:int = 50
+        self.Lv:int = 0
+        self.improvementStar:int = 0
+        self.points:int = 0
+        self.layer:int = 1
+        self.playerMap:bool = True
+        self.playerMonstronomicon:bool = False
+        self.Px:int = 0
+        self.Py:int = 0
+        self.Effects:List[Effects] = []
+        self.mana:int = 50
+        self.maxMana:int = 50
+        self.speed:int = 1
+        self.item:List[Item] = []
+        self.helmet:str = ""
+        self.chestplate:str = ""
+        self.weapon:str = ""
+        self.weapon2:str = ""
+        self.luck:int = 0
+        self.spells:List[Spells] = []
 
     def set_name(self, name):
         self.name = name
@@ -43,8 +48,7 @@ class Player:
 
         self._class = AVAILABLE_CLASSES[hero_class_name]()
         modifiers = self._class.stat_modifiers
-        
-        # Apply class modifiers
+
         self.Dm += modifiers["Dm"]
         self.Hp += modifiers["Hp"]
         self.maxHp += modifiers["maxHp"]
@@ -58,8 +62,7 @@ class Player:
 
         self._race = AVAILABLE_RACES[race_name]()
         stats = self._race.base_stats
-        
-        # Apply race base stats
+
         self.Dm = stats["Dm"]
         self.Hp = stats["Hp"]
         self.maxHp = stats["maxHp"]
