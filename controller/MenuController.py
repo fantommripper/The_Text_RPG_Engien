@@ -17,6 +17,10 @@ class MenuController():
         from event.menu.test_world_menu.multiplyWidgetTest import multiply_widget_test
         multiply_widget_test.run()
 
+    def show_world_map_test(self):
+        from event.menu.test_world_menu.WorldMapTest import world_map_test
+        world_map_test.run()
+
 
     def show_main_menu(self):
         from event.menu.game_menu.MainMenu import main_menu 
