@@ -376,12 +376,14 @@ class Consolas:
             raise WidgetCreationError(f"TableWidget creation failed: {e}")
 
     def create_player_map(self,
-                     config: Optional[PlayerMapConfig] = None,
-                     **kwargs) -> PlayerMapWidget:
+                    level_map: Levels.BaseLevel = None,  # Добавляем обязательный параметр
+                    config: Optional[PlayerMapConfig] = None,
+                    **kwargs) -> PlayerMapWidget:
         """
         создать виджет карты мира
 
         Args:
+            level_map: Карта уровня (обязательный параметр)
             config: Конфигурация карты
             **kwargs: Дополнительные параметры (для обратной совместимости)
 
@@ -389,11 +391,15 @@ class Consolas:
             PlayerMapWidget: Виджет карты мира
         """
         try:
+            # Проверяем, что карта передана
+            if level_map is None and 'map' not in kwargs:
+                raise ValueError("level_map parameter is required")
+            
             # Если конфигурация не передана, создаем из kwargs
             if config is None:
                 config = PlayerMapConfig(
-                    self,
-                    map=kwargs.get('map', Levels.Level0()),
+                    # Убираем лишний self из dataclass
+                    map=level_map or kwargs.get('map', Levels.Level0()),
                     clear=kwargs.get('clear', True),
                     alignment=AlignmentType(kwargs.get('tableAlignment', 'c')),
                     x=kwargs.get('x'),
@@ -404,7 +410,7 @@ class Consolas:
 
             widget = PlayerMapWidget(
                 self,
-                level_map=config.map,
+                level_map=config.map or level_map,  # Используем переданную карту
                 clear=config.clear,
                 tableAlignment=config.alignment.value,
                 x=config.x,
@@ -413,13 +419,13 @@ class Consolas:
                 Ydo=config.y_operation.value,
             )
 
-            logger.debug(f"PlayerMapWidget created")
+            logger.debug(f"PlayerMapWidget created successfully")
             return widget
 
         except Exception as e:
             logger.error(f"Failed to create PlayerMapWidget: {e}")
             raise WidgetCreationError(f"PlayerMapWidget creation failed: {e}")
-    
+
     def create_animation(self, 
                         frames: List[str], 
                         config: Optional[AnimationConfig] = None,

@@ -93,7 +93,7 @@ class EventSystem:
         self._logger = logging.getLogger(__name__)
         self._global_filters: List[Callable[[EventData], bool]] = []
     
-    def subscribe(self, 
+    def subscribe(self,
                   event_name: str, 
                   callback: Callable[[EventData], Any],
                   priority: EventPriority = EventPriority.NORMAL,
@@ -240,7 +240,7 @@ class EventSystem:
         """Получить список всех зарегистрированных событий"""
         with self._get_lock():
             return list(self._handlers.keys())
-    
+
     def clear_handlers(self, event_name: Optional[str] = None) -> None:
         """Очистить обработчики (все или для конкретного события)"""
         with self._get_lock():
@@ -303,6 +303,7 @@ def cancellable_event(func):
         return result
     return wrapper
 
+event_system = EventSystem()
 
 # Пример использования
 if __name__ == "__main__":

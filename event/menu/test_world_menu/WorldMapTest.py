@@ -9,11 +9,7 @@ class WorldMapTest():
     def __init__(self):
         self.level = Levels.Level0()
 
-        self.map_config = PlayerMapConfig(
-            map = self.level
-        )
-
     def run(self):
-        lib_controller.consolas.create_player_map(config=self.map_config)
+        lib_controller.consolas.create_player_map(level_map=self.level)
 
 world_map_test = WorldMapTest()
