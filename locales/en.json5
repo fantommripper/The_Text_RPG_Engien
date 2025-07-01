@@ -1,4 +1,5 @@
 {
+    // ===== ОСНОВНЫЕ КОМАНДЫ =====
     "back": "Back",
     "on": "On",
     "off": "Off",
@@ -7,26 +8,36 @@
     "menu": "Menu",
     "enter": "Enter",
 
+    // ===== ГЛАВНОЕ МЕНЮ =====
     "new_game": "New Game",
     "load_game": "Load Game",
     "options": "Options",
     "autors": "Autors",
     "exit": "Exit",
 
+    // ===== НАСТРОЙКИ =====
     "output_delay": "Output Delay",
     "language": "Language",
     "cheats": "Cheats",
 
+    // ===== СОЗДАНИЕ ПЕРСОНАЖА =====
+    // Заголовки
     "name": "Name",
     "class": "Class",
     "race": "Race",
+    
+    // Поля ввода
     "entry_name": "Entry Name",
     "entry_class": "Entry Class",
     "entry_race": "Entry Race",
+    
+    // Классы
     "swordsman": "Swordsman",
     "archer": "Archer",
     "magician": "Magician",
     "thief": "Thief",
+    
+    // Расы
     "human": "Human",
     "kobold": "Kobold",
     "owlin": "Owlin",

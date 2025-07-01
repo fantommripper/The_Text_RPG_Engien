@@ -47,8 +47,8 @@ class App():
         config.loading += 1
 
         audio_controller.play_music("background")
-        menu_controller.show_world_map_test()
-        #menu_controller.show_main_menu()
+        #menu_controller.show_world_map_test()
+        menu_controller.show_main_menu()
 
         while True:
             c = self.win.getch()
