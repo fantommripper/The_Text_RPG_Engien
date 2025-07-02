@@ -416,7 +416,7 @@ class {class_name}(BaseScene):
                 dpg.add_input_text(
                     tag="scene_edit_content",
                     multiline=True,
-                    height=350,
+                    height=-1,
                     width=-1,
                     default_value=content
                 )
@@ -469,7 +469,7 @@ class {class_name}(BaseScene):
 
         with dpg.window(
             label="Confirm Delete", 
-            modal=True, 
+            modal=True,
             width=300,
             height=120,
             tag="delete_confirm_dialog"
