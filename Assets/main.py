@@ -56,7 +56,7 @@ class App():
                 lib_controller.input_controller.handle_key(c)
             time.sleep(0.01)
 
-if __name__ == '__main__':
+def main():
     try:
         console_settings.open_terminal_fullscreen()
 
@@ -70,5 +70,5 @@ if __name__ == '__main__':
         audio_controller.stop_music()
         quit(1)
 
-
-
+if __name__ == '__main__':
+    main()
