@@ -23,8 +23,8 @@ class GameRunner:
         self._create_window()
 
     def _create_window(self):
-        with dpg.window(label="Game Runner", width=500, height=400, pos=[50, 300]) as self.window_id:
-            dpg.add_text("Text RPG Game Launcher")
+        with dpg.window(label="Game Runner", width=500, height=600, pos=[50, 300]) as self.window_id:
+            dpg.add_text("Game Launcher")
             dpg.add_separator()
             
             # Информация о игре
@@ -45,21 +45,21 @@ class GameRunner:
                 
                 # Проверяем существование файлов
                 if os.path.exists(self.main_py_path):
-                    dpg.add_text("[✓] main.py found", color=[100, 255, 100])
+                    dpg.add_text("[Y] main.py found", color=[100, 255, 100])
                 else:
-                    dpg.add_text("[✗] main.py not found!", color=[255, 100, 100])
+                    dpg.add_text("[N] main.py not found!", color=[255, 100, 100])
                 
                 if os.path.exists(self.bootstrap_path):
-                    dpg.add_text("[✓] bootstrap.py found", color=[100, 255, 100])
+                    dpg.add_text("[Y] bootstrap.py found", color=[100, 255, 100])
                 else:
-                    dpg.add_text("[✗] bootstrap.py not found!", color=[255, 100, 100])
-                
+                    dpg.add_text("[N] bootstrap.py not found!", color=[255, 100, 100])
+
                 # Проверяем lib папку
                 lib_path = os.path.join(os.path.dirname(self.assets_path), "lib")
                 if os.path.exists(lib_path):
-                    dpg.add_text("[✓] lib folder found", color=[100, 255, 100])
+                    dpg.add_text("[Y] lib folder found", color=[100, 255, 100])
                 else:
-                    dpg.add_text("[✗] lib folder not found!", color=[255, 100, 100])
+                    dpg.add_text("[N] lib folder not found!", color=[255, 100, 100])
             
             dpg.add_separator()
             
