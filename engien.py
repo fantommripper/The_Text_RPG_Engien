@@ -11,7 +11,7 @@ class Engine:
         self._init_dpg()
     
     def _get_system_font(self):
-        local_font = os.path.join(os.path.dirname(__file__), "HackNerdFont.ttf")
+        local_font = os.path.join(os.path.dirname(__file__), "Roboto.ttf")
         if os.path.exists(local_font):
             return local_font
         return None
