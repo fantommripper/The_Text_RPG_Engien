@@ -37,5 +37,4 @@ class MenuController():
     def show_hero_create_menu(self):
         from event.menu.game_menu.HeroCreateMenu import hero_create_menu
         hero_create_menu.run()
-        
 menu_controller = MenuController()

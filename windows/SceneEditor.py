@@ -2,7 +2,11 @@ import dearpygui.dearpygui as dpg
 import os
 import json
 import re
+import uuid
+
 from lib.Logger import logger
+from.ConfirmationDeleteDialog import ConfirmationDeleteDialog
+from .TextEditor import TextEditor
 
 class SceneEditor:
     def __init__(self):
@@ -36,7 +40,7 @@ class SceneEditor:
                     callback=self._on_scene_type_change,
                     tag="scene_type_radio"
                 )
-            
+
             dpg.add_separator()
 
             # Создание новой сцены
@@ -154,13 +158,13 @@ class {class_name}(BaseScene):
 
     def _camel_to_snake(self, name):
         """Конвертирует CamelCase в snake_case"""
-        return ''.join(['_' + l.lower() if l.isupper() else l for l in name])
+        return ''.join(["_" + l.lower() if l.isupper() else l for l in name])
 
     def _generate_controller_method(self, class_name, file_name):
         """Генерирует метод для MenuController"""
         snake_case_name = self._camel_to_snake(class_name)
-        method_name = f"show_{snake_case_name}"
-        
+        method_name = f"show{snake_case_name}"
+
         method_code = f'''
     def {method_name}(self):
         from event.menu.{self.current_scene_type}.{file_name} import {snake_case_name}
@@ -272,52 +276,91 @@ class {class_name}(BaseScene):
             self._show_error_dialog(f"Failed to create scene: {str(e)}")
 
     def _add_method_to_controller(self, class_name, file_name):
-        """Добавляет метод в MenuController"""
+        """Добавляет метод в MenuController перед строкой menu_controller = MenuController()"""
         try:
             if not os.path.exists(self.controller_path):
                 logger.warning(f"MenuController not found at {self.controller_path}")
                 return
-            
+
             # Читаем существующий файл
             with open(self.controller_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-            
+
             # Генерируем новый метод
             method_name, method_code = self._generate_controller_method(class_name, file_name[:-3])  # убираем .py
-            
+
             # Проверяем, что метод еще не существует
             if method_name in content:
                 logger.info(f"Method {method_name} already exists in MenuController")
                 return
-            
-            # Находим место для вставки (перед последней строкой с menu_controller = ...)
+
+            # Находим место для вставки (перед строкой menu_controller = MenuController())
             lines = content.split('\n')
             insert_index = -1
-            
+
             for i, line in enumerate(lines):
                 if line.strip().startswith('menu_controller = MenuController()'):
                     insert_index = i
                     break
-            
+
             if insert_index == -1:
                 # Если не нашли, добавляем в конец класса
-                for i in range(len(lines) - 1, -1, -1):
-                    if lines[i].strip() and not lines[i].startswith(' ') and not lines[i].startswith('\t'):
-                        insert_index = i + 1
-                        break
-            
+                insert_index = len(lines)
+
             # Вставляем новый метод
-            if insert_index != -1:
-                lines.insert(insert_index, method_code)
-                
-                # Записываем обновленный файл
-                with open(self.controller_path, 'w', encoding='utf-8') as f:
-                    f.write('\n'.join(lines))
-                
-                logger.info(f"Added method {method_name} to MenuController")
-            
+            lines.insert(insert_index, method_code)
+
+            # Записываем обновленный файл
+            with open(self.controller_path, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(lines))
+
+            logger.info(f"Added method {method_name} to MenuController")
+
         except Exception as e:
             logger.error(f"Error updating MenuController: {e}")
+
+    def _remove_method_from_controller(self, class_name):
+        """Удаляет метод для сцены из MenuController.py, не трогая menu_controller = MenuController()"""
+        try:
+            if not os.path.exists(self.controller_path):
+                logger.warning(f"MenuController not found at {self.controller_path}")
+                return
+
+            with open(self.controller_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+
+            snake_case_name = self._camel_to_snake(class_name)
+            method_name = f"show{snake_case_name}"
+
+            # Найти начало метода
+            start_idx = None
+            for i, line in enumerate(lines):
+                if line.strip().startswith(f"def {method_name}("):
+                    start_idx = i
+                    break
+
+            if start_idx is None:
+                logger.info(f"Method {method_name} not found in MenuController")
+                return
+
+            # Найти конец метода (следующий def на том же уровне или строка menu_controller = ...)
+            end_idx = start_idx + 1
+            while end_idx < len(lines):
+                stripped = lines[end_idx].strip()
+                if (stripped.startswith("def ") and not lines[end_idx].startswith("    ")) or \
+                stripped.startswith("menu_controller = MenuController()"):
+                    break
+                end_idx += 1
+
+            # Удалить строки метода
+            del lines[start_idx:end_idx]
+
+            with open(self.controller_path, 'w', encoding='utf-8') as f:
+                f.writelines(lines)
+
+            logger.info(f"Removed method {method_name} from MenuController")
+        except Exception as e:
+            logger.error(f"Error removing method from MenuController: {e}")
 
     def _populate_scenes_list(self):
         """Заполняет список существующих сцен"""
@@ -397,98 +440,53 @@ class {class_name}(BaseScene):
         logger.info(f"Editing scene: {scene_path}")
 
         try:
-            # Читаем содержимое файла
             with open(scene_path, 'r', encoding='utf-8') as f:
                 content = f.read()
 
-            # Создаем окно редактора
-            with dpg.window(
-                label=f"Edit Scene: {filename}", 
-                modal=True,
-                width=700, 
-                height=500, 
-                tag="scene_edit_dialog"
-            ):
-                dpg.add_text(f"Editing: {filename}")
-                dpg.add_separator()
+            # Генерируем уникальный тег для окна и поля ввода
+            unique_id = str(uuid.uuid4())
+            window_tag = f"scene_edit_dialog_{unique_id}"
 
-                # Текстовое поле для редактирования
-                dpg.add_input_text(
-                    tag="scene_edit_content",
-                    multiline=True,
-                    height=-1,
-                    width=-1,
-                    default_value=content
-                )
-                
-                dpg.add_separator()
-                with dpg.group(horizontal=True):
-                    dpg.add_button(
-                        label="Save",
-                        width=80, 
-                        user_data=(scene_path, filename),
-                        callback=self._save_edited_scene
-                    )
-                    dpg.add_button(
-                        label="Cancel", 
-                        width=80,
-                        callback=lambda: dpg.delete_item("scene_edit_dialog")
-                    )
+            def on_save():
+                self._save_edited_scene(scene_path, filename, window_tag)
 
+            def on_cancel():
+                dpg.delete_item(window_tag)
+
+            editor = TextEditor(
+                title=f"Edit Scene: {filename}",
+                content=content,
+                on_save=on_save,
+                on_cancel=on_cancel,
+                tag=window_tag
+            )
+            editor.show()
         except Exception as e:
             logger.error(f"Error opening scene for edit: {e}")
             self._show_error_dialog(f"Failed to open scene for editing: {str(e)}")
 
-    def _save_edited_scene(self, sender, app_data, user_data):
-        """Сохраняет отредактированную сцену"""
-        scene_path, filename = user_data
-
+    def _save_edited_scene(self, scene_path, filename, window_tag):
         try:
-            # Получаем новое содержимое
-            new_content = dpg.get_value("scene_edit_content")
-
-            # Сохраняем файл
+            new_content = dpg.get_value(f"{window_tag}_content")
             with open(scene_path, 'w', encoding='utf-8') as f:
                 f.write(new_content)
-
             logger.info(f"Saved edited scene: {scene_path}")
             self._show_success_dialog(f"Scene '{filename}' saved successfully!")
-            
-            # Закрываем диалог редактирования
-            dpg.delete_item("scene_edit_dialog")
-
+            dpg.delete_item(window_tag)
         except Exception as e:
             logger.error(f"Error saving edited scene: {e}")
             self._show_error_dialog(f"Failed to save scene: {str(e)}")
 
     def _confirm_delete_scene(self, filename):
         """Подтверждение удаления сцены"""
-        # Проверяем, что диалог не существует
-        if dpg.does_item_exist("delete_confirm_dialog"):
-            dpg.delete_item("delete_confirm_dialog")
-
-        with dpg.window(
-            label="Confirm Delete", 
-            modal=True,
-            width=300,
-            height=120,
-            tag="delete_confirm_dialog"
-        ):
-            dpg.add_text(f"Delete scene '{filename}'?")
-            dpg.add_text("This action cannot be undone!", color=[255, 100, 100])
-            dpg.add_separator()
-            with dpg.group(horizontal=True):
-                dpg.add_button(
-                    label="Delete", 
-                    width=80,
-                    user_data=filename,
-                    callback=self._delete_scene_confirmed
-                )
-                dpg.add_button(
-                    label="Cancel",
-                    width=80,
-                    callback=lambda: dpg.delete_item("delete_confirm_dialog")
-                )
+        dialog = ConfirmationDeleteDialog(
+            item_name=filename,
+            item_type="scene",
+            item_path=os.path.join(self.scenes_path, self.current_scene_type, filename)
+        )
+        dialog.show(
+            on_confirm=lambda sender, app_data, user_data=filename: self._delete_scene_confirmed(sender, app_data, user_data),
+        )
 
     def _delete_scene_confirmed(self, sender, app_data, user_data):
         """Подтвержденное удаление сцены"""
@@ -498,14 +496,16 @@ class {class_name}(BaseScene):
             scene_path = os.path.join(self.scenes_path, self.current_scene_type, filename)
             os.remove(scene_path)
             logger.info(f"Deleted scene: {scene_path}")
+
+            # Удаляем метод из MenuController
+            class_name = filename[:-3]  # убираем .py
+            self._remove_method_from_controller(class_name)
+
             self._show_success_dialog(f"Scene '{filename}' deleted successfully!")
             self._refresh_scenes_list()
         except Exception as e:
             logger.error(f"Error deleting scene: {e}")
             self._show_error_dialog(f"Failed to delete scene: {str(e)}")
-        finally:
-            if dpg.does_item_exist("delete_confirm_dialog"):
-                dpg.delete_item("delete_confirm_dialog")
 
     def _show_error_dialog(self, message):
         """Показывает диалог ошибки"""

@@ -1,6 +1,12 @@
 import dearpygui.dearpygui as dpg
 import os
 import re
+import time
+import shutil
+
+from .ConfirmationDeleteDialog import ConfirmationDeleteDialog
+from .CreateFileDialog import CreateFileDialog
+from .CreateFolderDialog import CreateFolderDialog
 from lib.Logger import logger
 
 class FileManager:
@@ -8,10 +14,13 @@ class FileManager:
         self.window_id = None
         self.assets_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Assets")
         self.selected_path = self.assets_path
+        self.selected_item_path = None  # Для отслеживания выбранного элемента
         self.window_handler = None
         self.path_mapping = {}
         self.expanded_nodes = {}
         self.safe_name_pattern = re.compile(r'^[\w\-\.\s]+$')  # Разрешенные символы в именах
+        self.dialog_counter = 0  # Счетчик для уникальных ID диалогов
+        self.highlighted_item = None  # Для отслеживания подсвеченного элемента
 
     def show(self):
         if self.window_id and dpg.does_item_exist(self.window_id):
@@ -37,12 +46,14 @@ class FileManager:
             with dpg.group(tag="file_list_container"):
                 self._populate_files()
 
-        with dpg.window(label="Context Menu", tag="context_menu", modal=True, show=False, no_title_bar=True,
-                    no_move=True, no_resize=True, width=180, height=150):
-            dpg.add_button(label="Open", callback=lambda: self._handle_menu_action("open"))
-            dpg.add_button(label="Create File", callback=lambda: self._handle_menu_action("create_file"))
-            dpg.add_button(label="Create Folder", callback=lambda: self._handle_menu_action("create_folder"))
-            dpg.add_button(label="Refresh", callback=lambda: self._handle_menu_action("refresh"))
+            self.context_menu_id = f"context_menu_{int(time.time() * 1000)}"
+            with dpg.popup(parent="file_list_container", tag=self.context_menu_id, modal=False, no_move=True):
+                dpg.add_menu_item(label="Open", callback=lambda: self._handle_menu_action("open", self.context_menu_id))
+                with dpg.menu(label="Create"):
+                    dpg.add_menu_item(label="Empty Python File", callback=lambda: self._handle_menu_action("create_file", self.context_menu_id))
+                    dpg.add_menu_item(label="Folder", callback=lambda: self._handle_menu_action("create_folder", self.context_menu_id))
+                dpg.add_menu_item(label="Delete", callback=lambda: self._handle_menu_action("delete", self.context_menu_id))
+                dpg.add_menu_item(label="Refresh", callback=lambda: self._handle_menu_action("refresh", self.context_menu_id))
 
     def _populate_files(self):
         try:
@@ -67,24 +78,21 @@ class FileManager:
                 dpg.bind_item_handler_registry(node, handler)
                 
                 self._add_directory_contents(self.assets_path, "assets_root")
-            
-            self._restore_expanded_state()
-            
+
         except Exception as e:
             logger.error(f"Error populating files: {e}")
             dpg.add_text(f"Error: {str(e)}", parent="file_list_container", color=[255, 100, 100])
     
     def _save_expanded_state(self):
-        self.expanded_nodes = {}
+        """Сохраняет пути раскрытых папок"""
+        self.expanded_nodes = set()
         for tag, path in self.path_mapping.items():
-            if dpg.does_item_exist(tag) and dpg.is_item_container(tag):
-                self.expanded_nodes[path] = dpg.get_item_configuration(tag)["default_open"]
-    
-    def _restore_expanded_state(self):
-        for tag, path in self.path_mapping.items():
-            if path in self.expanded_nodes:
-                dpg.configure_item(tag, default_open=self.expanded_nodes[path])
-    
+            # Проверяем, что это папка и она раскрыта (через value)
+            if dpg.does_item_exist(tag):
+                value = dpg.get_value(tag)
+                if value:  # True если раскрыта
+                    self.expanded_nodes.add(path)
+
     def _add_directory_contents(self, path, parent_tag):
         try:
             if not os.path.exists(path):
@@ -99,20 +107,19 @@ class FileManager:
                 if os.path.isdir(item_path):
                     folder_tag = f"folder_{abs(hash(item_path))}"
                     self.path_mapping[folder_tag] = item_path
-                    
-                    was_expanded = self.expanded_nodes.get(item_path, False)
+
+                    was_expanded = item_path in self.expanded_nodes
 
                     with dpg.tree_node(label=f"[D] {item}", tag=folder_tag,
                                     parent=parent_tag, default_open=was_expanded) as node:
                         with dpg.item_handler_registry() as handler:
-                            # ИСПРАВЛЕНИЕ: используем user_data для передачи пути
                             dpg.add_item_clicked_handler(
                                 button=dpg.mvMouseButton_Right,
                                 callback=lambda sender, app_data, user_data: self._on_right_click(user_data),
                                 user_data=item_path
                             )
                         dpg.bind_item_handler_registry(node, handler)
-                        
+
                         self._add_directory_contents(item_path, folder_tag)
 
             # Затем добавляем файлы
@@ -126,7 +133,6 @@ class FileManager:
                     node = dpg.add_text(f"{file_icon} {item}", parent=parent_tag, tag=file_tag)
                     
                     with dpg.item_handler_registry() as handler:
-                        # ИСПРАВЛЕНИЕ: используем user_data для передачи пути
                         dpg.add_item_clicked_handler(
                             button=dpg.mvMouseButton_Right,
                             callback=lambda sender, app_data, user_data: self._on_right_click(user_data),
@@ -136,7 +142,7 @@ class FileManager:
 
         except Exception as e:
             logger.error(f"Error adding directory contents for {path}: {e}")
-    
+
     def _get_file_icon(self, filename):
         ext = os.path.splitext(filename)[1].lower()
         icons = {
@@ -157,73 +163,99 @@ class FileManager:
 
     def _on_right_click(self, path):
         if path and os.path.exists(path):
-            # Если кликнули на файле, используем его директорию
+            self.selected_item_path = path
             if os.path.isfile(path):
                 self.selected_path = os.path.dirname(path)
             else:
                 self.selected_path = path
 
-            logger.info(f"Right clicked on: {path}, selected path: {self.selected_path}")
-
-            # Проверяем, что selected_path действительно директория
             if not os.path.isdir(self.selected_path):
                 self.selected_path = self.assets_path
                 logger.warning(f"Selected path is not a directory, using assets: {self.selected_path}")
 
-            # Получаем глобальную позицию мыши (относительно viewport)
+            # Показываем контекстное меню
             mouse_pos = dpg.get_mouse_pos(local=False)
-
-            # Получаем позицию окна FileManager для отладки
-            if dpg.does_item_exist(self.window_id):
-                window_pos = dpg.get_item_pos(self.window_id)
-                logger.info(f"Window pos: {window_pos}, Mouse pos: {mouse_pos}")
-
-            # Используем глобальные координаты мыши
-            menu_x = mouse_pos[0] + 10  # небольшой отступ
+            menu_x = mouse_pos[0] + 10
             menu_y = mouse_pos[1] + 10
 
-            # Проверяем границы viewport
+            # Корректируем если выходит за границы
             viewport_width = dpg.get_viewport_width()
             viewport_height = dpg.get_viewport_height()
+            menu_width = 200
+            menu_height = 200
 
-            menu_width = 180
-            menu_height = 150
-
-            # Корректируем если выходит за границы
             if menu_x + menu_width > viewport_width:
                 menu_x = mouse_pos[0] - menu_width - 10
-            
             if menu_y + menu_height > viewport_height:
                 menu_y = mouse_pos[1] - menu_height - 10
 
-            menu_x = max(10, menu_x)  # минимальный отступ от края
+            menu_x = max(10, menu_x)
             menu_y = max(10, menu_y)
 
-            if dpg.does_item_exist("context_menu"):
-                dpg.configure_item("context_menu", pos=[menu_x, menu_y], show=True)
+            dpg.configure_item(self.context_menu_id, pos=[menu_x, menu_y], show=True)
         else:
             logger.warning(f"Invalid path on right click: {path}")
             self.selected_path = self.assets_path
 
-    def _handle_menu_action(self, action):
-        # Закрываем контекстное меню
-        if dpg.does_item_exist("context_menu"):
-            dpg.configure_item("context_menu", show=False)
+    def _handle_menu_action(self, action, menu_id):
+        if dpg.does_item_exist(menu_id):
+            dpg.configure_item(menu_id, show=False)
 
         if not self.selected_path or not os.path.exists(self.selected_path):
             self.selected_path = self.assets_path
 
-        if action == "create_file":
-            dpg.split_frame()
-            self._create_python_file()
-        elif action == "create_folder":
-            dpg.split_frame()
-            self._create_folder()
+        if action == "delete":
+            self._delete_item()
         elif action == "refresh":
             self._refresh_files()
         elif action == "open":
-            logger.info(f"Opening file: {self.selected_path}")
-    
+            logger.info(f"Opening file: {self.selected_item_path}")
+            # TODO: Реализовать открытие файла в редакторе
+        elif action == "create_file":
+            self._create_python_file()
+        elif action == "create_folder":
+            self._create_folder()
+
+    def _delete_item(self):
+        """Удаляет выбранный файл или папку"""
+        if not self.selected_item_path or not os.path.exists(self.selected_item_path):
+            logger.warning("No valid item selected for deletion")
+            return
+        
+        # Нельзя удалить корневую папку Assets
+        if self.selected_item_path == self.assets_path:
+            self._show_error_dialog("Cannot delete the root Assets folder!")
+            return
+        
+        item_name = os.path.basename(self.selected_item_path)
+        item_type = "folder" if os.path.isdir(self.selected_item_path) else "file"
+
+        dialog = ConfirmationDeleteDialog(item_name, item_type, self.selected_item_path)
+        dialog.show(
+            on_confirm=lambda dialog_id, _: self._confirm_delete(dialog_id, self.selected_item_path)
+        )
+
+    def _confirm_delete(self, dialog_id, item_path):
+        """Подтверждает и выполняет удаление"""
+        try:
+            if os.path.isdir(item_path):
+                shutil.rmtree(item_path)
+                logger.info(f"Deleted folder: {item_path}")
+            else:
+                os.remove(item_path)
+                logger.info(f"Deleted file: {item_path}")
+            
+            # Сбрасываем выделение
+            self.selected_item_path = None
+            self.highlighted_item = None
+            
+            # Обновляем список файлов
+            self._refresh_files()
+            
+        except Exception as e:
+            logger.error(f"Error deleting item: {e}")
+            self._show_error_dialog(f"Failed to delete item: {str(e)}")
+
     def _create_python_file_in_assets(self):
         self.selected_path = self.assets_path
         self._create_python_file()
@@ -233,38 +265,31 @@ class FileManager:
         self._create_folder()
     
     def _create_python_file(self):
-        if not self.selected_path or not os.path.isdir(self.selected_path):
-            self.selected_path = self.assets_path
-            logger.warning(f"Invalid path, using assets: {self.selected_path}")
-        
-        target_path = self.selected_path
-        
-        with dpg.window(label="Create Python File", modal=True, width=300, height=150, tag="create_file_dialog") as dialog:
-            dpg.add_text("Enter file name:")
-            file_name_input = dpg.add_input_text(label="Name", default_value="new_file.py", width=200, tag="file_name_input")
-            
-            dpg.add_separator()
-            with dpg.group(horizontal=True):
-                dpg.add_button(label="Create", 
-                             callback=lambda: self._confirm_create_file(dialog, file_name_input, target_path))
-                dpg.add_button(label="Cancel", callback=lambda: dpg.delete_item(dialog))
+        dialog = CreateFileDialog()
+        dialog.show(
+            on_confirm=lambda dialog_id, input_id: self._confirm_create_file(dialog_id, input_id, self.selected_path)
+        )
     
     def _create_folder(self):
-        if not self.selected_path or not os.path.isdir(self.selected_path):
-            self.selected_path = self.assets_path
-            logger.warning(f"Invalid path, using assets: {self.selected_path}")
+        dialog = CreateFolderDialog()
+        dialog.show(
+            on_confirm=lambda dialog_id, input_id: self._confirm_create_folder(dialog_id, input_id, self.selected_path)
+        )
+    
+    def _cleanup_old_dialogs(self):
+        """Удаляет старые диалоги для предотвращения конфликтов"""
+        dialog_patterns = [
+            "create_file_dialog_",
+            "create_folder_dialog_",
+            "error_dialog_",
+            "delete_confirmation_"
+        ]
         
-        target_path = self.selected_path
-        
-        with dpg.window(label="Create Folder", modal=True, width=300, height=150, tag="create_folder_dialog") as dialog:
-            dpg.add_text("Enter folder name:")
-            folder_name_input = dpg.add_input_text(label="Name", default_value="new_folder", width=200, tag="folder_name_input")
-            
-            dpg.add_separator()
-            with dpg.group(horizontal=True):
-                dpg.add_button(label="Create", 
-                             callback=lambda: self._confirm_create_folder(dialog, folder_name_input, target_path))
-                dpg.add_button(label="Cancel", callback=lambda: dpg.delete_item(dialog))
+        for pattern in dialog_patterns:
+            for i in range(max(0, self.dialog_counter - 5), self.dialog_counter):
+                dialog_id = f"{pattern}{i}"
+                if dpg.does_item_exist(dialog_id):
+                    dpg.delete_item(dialog_id)
     
     def _is_valid_name(self, name):
         """Проверяет, является ли имя безопасным для файловой системы"""
@@ -285,8 +310,8 @@ class FileManager:
             
         return True, ""
     
-    def _confirm_create_file(self, dialog, input_field, target_path):
-        file_name = dpg.get_value(input_field).strip()
+    def _confirm_create_file(self, dialog_id, input_id, target_path):
+        file_name = dpg.get_value(input_id).strip()
         
         # Проверка имени
         is_valid, error_msg = self._is_valid_name(file_name)
@@ -319,14 +344,12 @@ class FileManager:
         except Exception as e:
             logger.error(f"Error creating file: {e}")
             self._show_error_dialog(f"Failed to create file: {str(e)}")
-        finally:
-            dpg.delete_item(dialog)
 
-    def _confirm_create_folder(self, dialog, input_field, target_path):
-        folder_name = dpg.get_value(input_field).strip()
+    def _confirm_create_folder(self, dialog_id, input_id, target_path):
+        folder_name = dpg.get_value(input_id).strip()
 
         logger.info(f"Attempting to create folder '{folder_name}' in '{target_path}'")
-        
+
         # Проверка имени
         is_valid, error_msg = self._is_valid_name(folder_name)
         if not is_valid:
@@ -336,7 +359,7 @@ class FileManager:
         
         folder_path = os.path.join(target_path, folder_name)
         logger.info(f"Full folder path will be: {folder_path}")
-        
+
         # Проверка существования папки
         if os.path.exists(folder_path):
             logger.warning(f"Folder already exists: {folder_path}")
@@ -354,19 +377,24 @@ class FileManager:
             os.makedirs(folder_path, exist_ok=True)
             logger.info(f"Successfully created folder: {folder_path}")
             self._refresh_files()
-            
+
         except Exception as e:
             logger.error(f"Error creating folder: {e}")
             self._show_error_dialog(f"Failed to create folder: {str(e)}")
-        finally:
-            dpg.delete_item(dialog)
-    
+
     def _show_error_dialog(self, message):
-        with dpg.window(label="Error", modal=True, width=300, height=100, tag="error_dialog"):
+        self.dialog_counter += 1
+        error_dialog_id = f"error_dialog_{self.dialog_counter}"
+        
+        with dpg.window(label="Error", modal=True, width=300, height=100, 
+                       tag=error_dialog_id, pos=[250, 250]):
             dpg.add_text(message)
             dpg.add_separator()
             with dpg.group(horizontal=True):
-                dpg.add_button(label="OK", width=75, callback=lambda: dpg.delete_item("error_dialog"))
+                dpg.add_button(label="OK", width=75, 
+                             callback=lambda: dpg.delete_item(error_dialog_id))
+        
+        dpg.focus_item(error_dialog_id)
     
     def _refresh_files(self):
         logger.info("Refreshing file list...")
