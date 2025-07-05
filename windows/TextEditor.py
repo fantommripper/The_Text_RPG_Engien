@@ -13,8 +13,8 @@ class TextEditor:
             dpg.delete_item(self.tag)
         with dpg.window(
             label=self.title,
-            width=700,
-            height=500,
+            width=900,
+            height=700,
             tag=self.tag
         ):
             with dpg.group(horizontal=True):

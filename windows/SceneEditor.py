@@ -5,7 +5,11 @@ import re
 import uuid
 
 from lib.Logger import logger
-from.ConfirmationDeleteDialog import ConfirmationDeleteDialog
+
+from .Dialogs.ErrorDialog import ErroreDialog
+from .Dialogs.SuccessDialog import SuccessDialog
+from .Dialogs.InfoDialog import InfoDialog
+from .Dialogs.ConfirmationDeleteDialog import ConfirmationDeleteDialog
 from .TextEditor import TextEditor
 
 class SceneEditor:
@@ -509,21 +513,24 @@ class {class_name}(BaseScene):
 
     def _show_error_dialog(self, message):
         """Показывает диалог ошибки"""
-        with dpg.window(label="Error", modal=True, width=350, height=120, tag="error_dialog"):
-            dpg.add_text(message, wrap=320)
-            dpg.add_separator()
-            dpg.add_button(label="OK", width=75, callback=lambda: dpg.delete_item("error_dialog"))
+        dialog = ErroreDialog()
+        dialog.show(
+            message=message,
+            on_confirm=lambda sender, app_data: dpg.delete_item(dialog.dialog_id),
+        )
 
     def _show_success_dialog(self, message):
         """Показывает диалог успеха"""
-        with dpg.window(label="Success", modal=True, width=350, height=120, tag="success_dialog"):
-            dpg.add_text(message, wrap=320, color=[100, 255, 100])
-            dpg.add_separator()
-            dpg.add_button(label="OK", width=75, callback=lambda: dpg.delete_item("success_dialog"))
+        dialog = SuccessDialog()
+        dialog.show(
+            message=message,
+            on_confirm=lambda sender, app_data: dpg.delete_item(dialog.dialog_id),
+        )
 
     def _show_info_dialog(self, message):
         """Показывает информационный диалог"""
-        with dpg.window(label="Info", modal=True, width=350, height=120, tag="info_dialog"):
-            dpg.add_text(message, wrap=320, color=[100, 200, 255])
-            dpg.add_separator()
-            dpg.add_button(label="OK", width=75, callback=lambda: dpg.delete_item("info_dialog"))
+        dialog = InfoDialog()
+        dialog.show(
+            message=message,
+            on_confirm=lambda sender, app_data: dpg.delete_item(dialog.dialog_id),
+        )

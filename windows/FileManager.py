@@ -1,12 +1,20 @@
+import uuid
 import dearpygui.dearpygui as dpg
 import os
 import re
 import time
 import shutil
+import threading
 
-from .ConfirmationDeleteDialog import ConfirmationDeleteDialog
-from .CreateFileDialog import CreateFileDialog
-from .CreateFolderDialog import CreateFolderDialog
+from .Dialogs.ConfirmationDeleteDialog import ConfirmationDeleteDialog
+from .Dialogs.CreateFileDialog import CreateFileDialog
+from .Dialogs.CreateFolderDialog import CreateFolderDialog
+from .Dialogs.RenameDialog import RenameDialog
+from .Dialogs.MoveDialog import MoveDialog
+from .Dialogs.SuccessDialog import SuccessDialog
+from .Dialogs.ErrorDialog import ErroreDialog
+
+from .TextEditor import TextEditor
 from lib.Logger import logger
 
 class FileManager:
@@ -14,13 +22,16 @@ class FileManager:
         self.window_id = None
         self.assets_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Assets")
         self.selected_path = self.assets_path
-        self.selected_item_path = None  # Для отслеживания выбранного элемента
+        self.selected_item_path = None
         self.window_handler = None
         self.path_mapping = {}
         self.expanded_nodes = {}
-        self.safe_name_pattern = re.compile(r'^[\w\-\.\s]+$')  # Разрешенные символы в именах
-        self.dialog_counter = 0  # Счетчик для уникальных ID диалогов
-        self.highlighted_item = None  # Для отслеживания подсвеченного элемента
+        self.safe_name_pattern = re.compile(r'^[\w\-\.\s]+$')
+        self.dialog_counter = 0
+        self.highlighted_item = None
+        self.recent_files = []
+        self.search_results_full_paths = []
+        self.search_query = ""
 
     def show(self):
         if self.window_id and dpg.does_item_exist(self.window_id):
@@ -49,6 +60,7 @@ class FileManager:
             self.context_menu_id = f"context_menu_{int(time.time() * 1000)}"
             with dpg.popup(parent="file_list_container", tag=self.context_menu_id, modal=False, no_move=True):
                 dpg.add_menu_item(label="Open", callback=lambda: self._handle_menu_action("open", self.context_menu_id))
+                dpg.add_menu_item(label="Rename", callback=lambda: self._handle_menu_action("rename", self.context_menu_id))
                 with dpg.menu(label="Create"):
                     dpg.add_menu_item(label="Empty Python File", callback=lambda: self._handle_menu_action("create_file", self.context_menu_id))
                     dpg.add_menu_item(label="Folder", callback=lambda: self._handle_menu_action("create_folder", self.context_menu_id))
@@ -209,12 +221,128 @@ class FileManager:
         elif action == "refresh":
             self._refresh_files()
         elif action == "open":
-            logger.info(f"Opening file: {self.selected_item_path}")
-            # TODO: Реализовать открытие файла в редакторе
+            self._open_file()
         elif action == "create_file":
             self._create_python_file()
         elif action == "create_folder":
             self._create_folder()
+        elif action == "rename":
+            self._rename_item()
+
+    def _open_file(self):
+        """Открывает файл в текстовом редакторе или другом приложении"""
+        filename = old_name = os.path.basename(self.selected_item_path)
+        scene_path = os.path.join(self.selected_item_path)
+        logger.info(f"Editing scene: {scene_path}")
+
+        try:
+            with open(scene_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            # Генерируем уникальный тег для окна и поля ввода
+            unique_id = str(uuid.uuid4())
+            window_tag = f"scene_edit_dialog_{unique_id}"
+
+            def on_save():
+                self._save_edited_file(filename, window_tag)
+
+            def on_cancel():
+                dpg.delete_item(window_tag)
+
+            editor = TextEditor(
+                title=f"Edit Scene: {filename}",
+                content=content,
+                on_save=on_save,
+                on_cancel=on_cancel,
+                tag=window_tag
+            )
+            editor.show()
+        except Exception as e:
+            logger.error(f"Error opening scene for edit: {e}")
+            self._show_error_dialog(f"Failed to open scene for editing: {str(e)}")
+
+    def _save_edited_file(self, filename, window_tag):
+        try:
+            new_content = dpg.get_value(f"{window_tag}_content")
+            with open(self.selected_item_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            logger.info(f"Saved edited file: {self.selected_item_path}")
+            self._show_success_dialog(f"file '{filename}' saved successfully!")
+            dpg.delete_item(window_tag)
+        except Exception as e:
+            logger.error(f"Error saving edited file: {e}")
+            self._show_error_dialog(f"Failed to save file: {str(e)}")
+
+    def _rename_item(self):
+        if not self.selected_item_path:
+            return
+
+        old_name = os.path.basename(self.selected_item_path)
+        dialog = RenameDialog(old_name)
+        dialog.show(
+            on_confirm=lambda dialog_id, input_id: self._confirm_rename(dialog_id, input_id)
+        )
+
+    def _confirm_rename(self, dialog_id, input_id):
+        new_name = dpg.get_value(input_id).strip()
+        if not new_name:
+            return
+            
+        new_path = os.path.join(os.path.dirname(self.selected_item_path), new_name)
+        
+        try:
+            os.rename(self.selected_item_path, new_path)
+            self.selected_item_path = new_path
+            self._add_to_recent(self.selected_item_path)
+            self._refresh_files()
+        except Exception as e:
+            self._show_error_dialog(f"Rename failed: {str(e)}")
+
+    def _start_drag(self, sender, app_data, user_data):
+        """Начинаем перетаскивание элемента"""
+        dpg.set_drag_payload("FILE_PATH", user_data)
+
+    def _on_drop(self, sender, app_data, user_data):
+        """Обработка события Drop"""
+        if dpg.get_payload_type() != "FILE_PATH":
+            return
+        
+        source_path = dpg.get_payload_data()
+        target_dir = user_data
+
+        # Проверяем валидность путей
+        if not source_path or not target_dir:
+            return
+        if not os.path.exists(source_path) or not os.path.isdir(target_dir):
+            return
+        if source_path == target_dir:
+            return
+
+        # Проверяем, что не перемещаем папку в саму себя
+        if os.path.isdir(source_path):
+            target_abs = os.path.abspath(target_dir)
+            source_abs = os.path.abspath(source_path)
+            if target_abs.startswith(source_abs + os.sep):
+                self._show_error_dialog("Cannot move a folder into itself")
+                return
+        
+        # Формируем новый путь
+        item_name = os.path.basename(source_path)
+        new_path = os.path.join(target_dir, item_name)
+
+        # Проверяем существование
+        if os.path.exists(new_path):
+            self._show_error_dialog(f"'{item_name}' already exists in target directory")
+            return
+
+        # Выполняем перемещение
+        try:
+            shutil.move(source_path, new_path)
+            self.selected_item_path = new_path
+            self._refresh_files()
+        except Exception as e:
+            logger.error(f"Drag & Drop move failed: {e}")
+            self._show_error_dialog(f"Move failed: {str(e)}")
 
     def _delete_item(self):
         """Удаляет выбранный файл или папку"""
@@ -269,28 +397,13 @@ class FileManager:
         dialog.show(
             on_confirm=lambda dialog_id, input_id: self._confirm_create_file(dialog_id, input_id, self.selected_path)
         )
-    
+
     def _create_folder(self):
         dialog = CreateFolderDialog()
         dialog.show(
             on_confirm=lambda dialog_id, input_id: self._confirm_create_folder(dialog_id, input_id, self.selected_path)
         )
-    
-    def _cleanup_old_dialogs(self):
-        """Удаляет старые диалоги для предотвращения конфликтов"""
-        dialog_patterns = [
-            "create_file_dialog_",
-            "create_folder_dialog_",
-            "error_dialog_",
-            "delete_confirmation_"
-        ]
-        
-        for pattern in dialog_patterns:
-            for i in range(max(0, self.dialog_counter - 5), self.dialog_counter):
-                dialog_id = f"{pattern}{i}"
-                if dpg.does_item_exist(dialog_id):
-                    dpg.delete_item(dialog_id)
-    
+
     def _is_valid_name(self, name):
         """Проверяет, является ли имя безопасным для файловой системы"""
         if not name or name.strip() == "":
@@ -382,23 +495,25 @@ class FileManager:
             logger.error(f"Error creating folder: {e}")
             self._show_error_dialog(f"Failed to create folder: {str(e)}")
 
-    def _show_error_dialog(self, message):
-        self.dialog_counter += 1
-        error_dialog_id = f"error_dialog_{self.dialog_counter}"
-        
-        with dpg.window(label="Error", modal=True, width=300, height=100, 
-                       tag=error_dialog_id, pos=[250, 250]):
-            dpg.add_text(message)
-            dpg.add_separator()
-            with dpg.group(horizontal=True):
-                dpg.add_button(label="OK", width=75, 
-                             callback=lambda: dpg.delete_item(error_dialog_id))
-        
-        dpg.focus_item(error_dialog_id)
-    
     def _refresh_files(self):
         logger.info("Refreshing file list...")
         if dpg.does_item_exist(self.window_id):
             self._populate_files()
         else:
             logger.warning("Skipping refresh - file manager window not created")
+
+    def _show_success_dialog(self, message):
+        """Показывает диалог успеха"""
+        dialog = SuccessDialog()
+        dialog.show(
+            message=message,
+            on_confirm=lambda sender, app_data: dpg.delete_item(dialog.dialog_id),
+        )
+
+    def _show_error_dialog(self, message):
+        """Показывает диалог ошибки"""
+        dialog = ErroreDialog()
+        dialog.show(
+            message=message,
+            on_confirm=lambda sender, app_data: dpg.delete_item(dialog.dialog_id),
+        )
