@@ -23,7 +23,7 @@ class MenuController():
 
 
     def show_main_menu(self):
-        from event.menu.game_menu.MainMenu import main_menu 
+        from event.menu.game_menu.MainMenu import main_menu
         main_menu.run()
 
     def show_autors_menu(self):

@@ -3,8 +3,8 @@ import time as t
 
 from lib.widgets.BasePassiveWidget import BasePassiveWidget
 from lib.Logger import logger
-from controller.AudioController import audio_controller
-from data.Config import config
+from Assets.controller.AudioController import audio_controller
+from Assets.data.Config import config
 
 class TableWidget(BasePassiveWidget):
     def __init__(self, parent, *args, style="info", clear=True, separator_positions=None,

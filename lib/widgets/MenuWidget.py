@@ -3,9 +3,9 @@ from typing import Dict, List, Callable
 import time as t
 
 from lib.widgets.BaseActiveWidget import BaseActiveWidget
-from controller.AudioController import audio_controller
-from controller.LibController import lib_controller
-from data.Config import config
+from Assets.controller.AudioController import audio_controller
+from Assets.controller.LibController import lib_controller
+from Assets.data.Config import config
 
 class MenuWidget(BaseActiveWidget):
     def __init__(self, parent, title: str, options: Dict[str, Callable],

@@ -4,10 +4,10 @@ from typing import Callable, List
 
 from lib.widgets.BaseActiveWidget import BaseActiveWidget
 
-from controller.LibController import lib_controller
-from controller.AudioController import audio_controller
+from Assets.controller.LibController import lib_controller
+from Assets.controller.AudioController import audio_controller
 
-from data.Config import config
+from Assets.data.Config import config
 
 class TextBoxWidget(BaseActiveWidget):
     def __init__(self, parent, tableAlignment: str = "c", clear: bool = True,

@@ -1,6 +1,6 @@
 from lib.widgets.BasePassiveWidget import BasePassiveWidget
 import time
-from controller.AudioController import audio_controller
+from Assets.controller.AudioController import audio_controller
 
 class AnimationWidget(BasePassiveWidget):
     def __init__(self, parent, frames, delay=0.3, alignmentTable="c", x=None, y=None, clear=True, Xdo="=", Ydo="=", audio=True):

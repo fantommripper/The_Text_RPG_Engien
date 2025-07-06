@@ -1,9 +1,9 @@
 import curses
 
-from data.LevelMap import Levels
+from Assets.data.LevelMap import Levels
 from lib.widgets.BaseActiveWidget import BaseActiveWidget
 from lib.Logger import logger
-from controller.LibController import lib_controller
+from Assets.controller.LibController import lib_controller
 
 
 class PlayerMapWidget(BaseActiveWidget):

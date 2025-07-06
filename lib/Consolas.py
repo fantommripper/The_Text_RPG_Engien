@@ -2,7 +2,7 @@ from typing import List, Dict, Optional, Tuple, Any, Union
 from dataclasses import dataclass
 from enum import Enum
 
-from data.LevelMap import Levels
+from Assets.data.LevelMap import Levels
 
 from lib.widgets.MenuWidget import MenuWidget
 from lib.widgets.TextBoxWidget import TextBoxWidget
@@ -123,17 +123,15 @@ class Consolas:
     и управления их позиционированием на экране.
     """
     
-    def __init__(self, config: Any, player: Any, win: Any) -> None:
+    def __init__(self, config: Any, win: Any) -> None:
         """
         Инициализация Consolas
         
         Args:
             config: Конфигурация приложения
-            player: Объект игрока
             win: Окно curses
         """
         self._config = config
-        self._player = player
         self._win = win
         self._current_focus: int = 0
         self._tab_input_event: Optional[Any] = None
@@ -146,12 +144,7 @@ class Consolas:
     def config(self) -> Any:
         """Получить конфигурацию"""
         return self._config
-    
-    @property
-    def player(self) -> Any:
-        """Получить объект игрока"""
-        return self._player
-    
+
     @property
     def win(self) -> Any:
         """Получить окно curses"""
@@ -456,7 +449,7 @@ class Consolas:
             
             widget = AnimationWidget(
                 self, frames, config.delay, config.alignment.value,
-                config.x, config.y, config.clear, 
+                config.x, config.y, config.clear,
                 config.x_operation.value, config.y_operation.value, config.audio
             )
             

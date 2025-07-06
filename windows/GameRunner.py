@@ -26,23 +26,23 @@ class GameRunner:
         with dpg.window(label="Game Runner", width=500, height=600, pos=[50, 300]) as self.window_id:
             dpg.add_text("Game Launcher")
             dpg.add_separator()
-            
+
             # Информация о игре
             with dpg.group():
                 dpg.add_text("Game Status:", color=[100, 200, 255])
                 dpg.add_text("Ready to launch", tag="game_status", color=[100, 255, 100])
-                
+
                 dpg.add_separator()
-                
+
                 dpg.add_text("Assets Path:")
                 dpg.add_text(self.assets_path, wrap=450, color=[200, 200, 200])
                 
                 dpg.add_text("Main.py Path:")
                 dpg.add_text(self.main_py_path, wrap=450, color=[200, 200, 200])
-                
+
                 dpg.add_text("Bootstrap.py Path:")
                 dpg.add_text(self.bootstrap_path, wrap=450, color=[200, 200, 200])
-                
+
                 # Проверяем существование файлов
                 if os.path.exists(self.main_py_path):
                     dpg.add_text("[Y] main.py found", color=[100, 255, 100])

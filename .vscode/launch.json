@@ -8,7 +8,7 @@
             "name": "UWU debug",
             "type": "debugpy",
             "request": "launch",
-            "program": "main.py",
+            "program": "engine.py",
             "console": "externalTerminal"
         }
     ]

@@ -7,7 +7,7 @@ from lib.SaveManager import save_manager
 from lib.Localization import loc
 
 from controller.MenuController import menu_controller
-from controller.LibController import lib_controller
+from controller.LibController import LibController
 from controller.AudioController import audio_controller
 
 from data.Config import config
@@ -15,6 +15,7 @@ from data.Config import config
 class App():
     def __init__(self):
         self.win = None
+        self.lib_controller = LibController.get_instance()
 
     def start(self, stdscr):
         logger.info("Starting game")
@@ -31,7 +32,7 @@ class App():
         self.win.clear()
         self.win.refresh()
 
-        lib_controller.load_lib(self.win)
+        self.lib_controller.load_lib(self.win)
 
         self.run()
 
@@ -40,9 +41,9 @@ class App():
         loc.set_language(config.language)
 
         if config.loading == 0:
-            lib_controller.consolas.loading_animation()
+            self.lib_controller.consolas.loading_animation()
         else:
-            lib_controller.consolas.fast_loading()
+            self.lib_controller.consolas.fast_loading()
 
         config.loading += 1
 
@@ -53,7 +54,7 @@ class App():
         while True:
             c = self.win.getch()
             if c != -1:
-                lib_controller.input_controller.handle_key(c)
+                self.lib_controller.input_controller.handle_key(c)
             time.sleep(0.01)
 
 def main():
