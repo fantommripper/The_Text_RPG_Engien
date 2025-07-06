@@ -1,5 +1,5 @@
 from controller.AudioController import audio_controller
-from controller.LibController import lib_controller
+from controller.LibController import LibController
 
 from lib.Logger import logger
 from lib.ConsoleSettings import console_settings
@@ -12,7 +12,7 @@ class AudioTestMenu():
 
 
         while True:
-            main_menu_widget = lib_controller.consolas.create_menu(
+            main_menu_widget = LibController.get_instance().consolas.create_menu(
                             title="Audio Test",
                             options=["exit", "Battle Music.wav", "BGmusic.wav", "Forest Music.wav", "Shop Music.wav"],
                             tips=False,

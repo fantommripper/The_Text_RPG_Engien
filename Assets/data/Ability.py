@@ -1,4 +1,6 @@
 class Ability:
+    _instance = None
+
     def __init__(self):
         self.DoublePunch = False
         self.ManaRecovery = False
@@ -15,5 +17,8 @@ class Ability:
     def from_dict(cls, data):
         return cls(data['DoublePunch'], data['ManaRecovery'], data['EarningCoinsAndXP'])
 
-
-ability = Ability()
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance

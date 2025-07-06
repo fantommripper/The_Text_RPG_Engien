@@ -6,9 +6,9 @@ from lib.Logger import logger
 from lib.SaveManager import save_manager
 from lib.Localization import loc
 
-from controller.MenuController import menu_controller
-from controller.LibController import lib_controller
-from controller.AudioController import audio_controller
+from controller.MenuController import MenuController
+from controller.LibController import LibController
+from controller.AudioController import AudioController
 
 from data.Config import config
 
@@ -31,7 +31,7 @@ class App():
         self.win.clear()
         self.win.refresh()
 
-        lib_controller.load_lib(self.win)
+        LibController.get_instance().load_lib(self.win)
 
         self.run()
 
@@ -40,20 +40,20 @@ class App():
         loc.set_language(config.language)
 
         if config.loading == 0:
-            lib_controller.consolas.loading_animation()
+            LibController.get_instance().consolas.loading_animation()
         else:
-            lib_controller.consolas.fast_loading()
+            LibController.get_instance().consolas.fast_loading()
 
         config.loading += 1
 
-        audio_controller.play_music("background")
+        AudioController.get_instance().play_music("background")
         #menu_controller.show_world_map_test()
-        menu_controller.show_main_menu()
+        MenuController.get_instance().show_main_menu()
 
         while True:
             c = self.win.getch()
             if c != -1:
-                lib_controller.input_controller.handle_key(c)
+                LibController.get_instance().input_controller.handle_key(c)
             time.sleep(0.01)
 
 def main():
@@ -67,7 +67,7 @@ def main():
         logger.error(f'ERROR: {str(e)}', exc_info=True)
 
         curses.endwin()
-        audio_controller.stop_music()
+        AudioController.get_instance().stop_music()
         quit(1)
 
 if __name__ == '__main__':

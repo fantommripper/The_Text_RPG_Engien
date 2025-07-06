@@ -1,4 +1,4 @@
-from controller.LibController import lib_controller
+from controller.LibController import LibController
 
 from lib.Logger import logger
 from lib.ConsoleSettings import console_settings
@@ -9,7 +9,7 @@ class WidgetTestMenu():
 
     def run(self):
         while True:
-            main_menu_widget = lib_controller.consolas.create_menu(
+            main_menu_widget = LibController.get_instance().consolas.create_menu(
                             title="Menu",
                             options=["exit", "doble menu"],
                             tips=False,
@@ -26,7 +26,7 @@ class WidgetTestMenu():
 
                 elif self.action == "1":
                     logger.info("open double menu")
-                    double_menu_widget = lib_controller.consolas.create_menu(
+                    double_menu_widget = LibController.get_instance().consolas.create_menu(
                                             clear=False,
                                             title="double menu",
                                             options=["exit"],

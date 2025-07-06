@@ -2,14 +2,14 @@ from lib.Logger import logger
 from lib.SaveManager import save_manager
 from lib.Localization import loc
 
-from controller.MenuController import menu_controller
-from controller.LibController import lib_controller
+from controller.MenuController import MenuController
+from controller.LibController import LibController
 
 from data.Config import config
 
 class SettingMenu:
     def __init__(self):
-        self.consolas = lib_controller.consolas
+        self.consolas = LibController.get_instance().consolas
         self.menu = None
 
     def _stop_menu(self):
@@ -18,7 +18,7 @@ class SettingMenu:
 
     def _show_main_menu(self):
         self._stop_menu()
-        menu_controller.show_main_menu()
+        MenuController.get_instance().show_main_menu()
         save_manager.save_all_game_data()
 
     def run(self):

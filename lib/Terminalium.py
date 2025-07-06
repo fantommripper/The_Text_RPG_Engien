@@ -1,7 +1,7 @@
 import dearpygui.dearpygui as dpg
 from lib.Logger import logger
 from inspect import signature
-from controller.MenuController import menu_controller
+from controller.MenuController import MenuController
 
 class Terminalium():
     def __init__(self):
@@ -19,13 +19,13 @@ class Terminalium():
 
     def _switch_menu(self, room_name):
         if room_name == "audio_test_menu" or room_name == "audio_test"  or room_name == "atm":
-            menu_controller.show_audio_test_menu()
+            MenuController.get_instance().show_audio_test_menu()
         elif room_name == "main_menu" or room_name == "main" or room_name == "mm":
-            menu_controller.show_main_menu()
+            MenuController.get_instance().show_main_menu()
         elif room_name == "autors_menu" or room_name == "autors" or room_name == "am":
-            menu_controller.show_autors_menu()
+            MenuController.get_instance().show_autors_menu()
         elif room_name == "widget_test_menu" or room_name == "widget_test" or room_name == "wtm":
-            menu_controller.show_widget_test_menu()
+            MenuController.get_instance().show_widget_test_menu()
 
     def register_command(self, name, callback, description=""):
         self.commands[name] = {

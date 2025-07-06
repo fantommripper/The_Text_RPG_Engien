@@ -1,9 +1,9 @@
-from controller.LibController import lib_controller
+from controller.LibController import LibController
 from controller.MenuController import menu_controller
 
 class multiplyWidgetTest():
     def __init__(self):
-        self.consolas = lib_controller.consolas
+        self.consolas = LibController.get_instance().consolas
         self.text = None
         self.main_menu = None
         self.main_menu1 = None

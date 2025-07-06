@@ -1,15 +1,15 @@
-from controller.LibController import lib_controller
-from controller.MenuController import menu_controller
+from controller.LibController import LibController
+from controller.MenuController import MenuController
 
 from lib.Logger import logger
 from lib.Localization import loc
 
-from data.Config import config
-from data.Player import player
+from data.Player import Player
 
 class HeroCreateMenu():
     def __init__(self):
-        self.consolas = lib_controller.consolas
+        self.consolas = LibController.get_instance().consolas
+        self.player = Player.get_instance()
 
         # --- Widgets ---
         self.tips_entry_name_Table = None
@@ -62,12 +62,12 @@ class HeroCreateMenu():
         self._update_output_table()
 
     def _enter_hero(self):
-        player.set_class(self.player_class)
-        player.set_race(self.player_race)
+        self.player.set_class(self.player_class)
+        self.player.set_race(self.player_race)
 
     def _back_to_main_menu(self):
         self._stop_menu()
-        menu_controller.show_main_menu()
+        MenuController.get_instance().show_main_menu()
 
     def run(self):
         if self.player_class != "None": self.displayed_class = loc.t(self.player_class)

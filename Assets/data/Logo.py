@@ -1,4 +1,6 @@
 class Logo:
+    _instance = None
+
     def __init__(self):
         self.company_logo = [
             "                                                                                                                                                                                  ",
@@ -24,4 +26,8 @@ class Logo:
             "░░░╚═╝░░░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░░╚═╝░░╚═╝╚═╝░░░░░░╚═════╝░",
         ]
 
-logo = Logo()
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance

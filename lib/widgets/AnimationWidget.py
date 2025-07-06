@@ -1,6 +1,6 @@
 from lib.widgets.BasePassiveWidget import BasePassiveWidget
 import time
-from controller.AudioController import audio_controller
+from controller.AudioController import AudioController
 
 class AnimationWidget(BasePassiveWidget):
     def __init__(self, parent, frames, delay=0.3, alignmentTable="c", x=None, y=None, clear=True, Xdo="=", Ydo="=", audio=True):
@@ -24,7 +24,7 @@ class AnimationWidget(BasePassiveWidget):
         for frame in self._frames:
             self._win.addstr(current_y, table_x, frame)
             if self._audio:
-                audio_controller.play_random_print_sound()
+                AudioController.get_instance().play_random_print_sound()
             self._win.refresh()
             time.sleep(self._delay)
             current_y += 1

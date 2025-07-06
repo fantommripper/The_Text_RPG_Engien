@@ -1,9 +1,16 @@
 from lib.Logger import logger
 
 class MenuController():
+    _instance = None
+
     def __init__(self):
         pass
 
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
 
     def show_audio_test_menu(self):
         from event.menu.test_world_menu.AudioTestMenu import audio_test_menu
@@ -37,4 +44,3 @@ class MenuController():
     def show_hero_create_menu(self):
         from event.menu.game_menu.HeroCreateMenu import hero_create_menu
         hero_create_menu.run()
-menu_controller = MenuController()

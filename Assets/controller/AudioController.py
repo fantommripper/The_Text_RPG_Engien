@@ -4,6 +4,8 @@ import random
 from lib.Logger import logger
 
 class AudioController:
+    _instance = None
+
     def __init__(self):
         self.volume = 0.5
         self.sounds = {}
@@ -14,6 +16,12 @@ class AudioController:
             logger.info("AudioController initialized successfully.")
         except Exception as e:
             logger.error(f"AudioController initialization error: {e}", exc_info=True)
+
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
 
     def _get_sound_path(self, filename):
         base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -97,5 +105,3 @@ class AudioController:
             pygame.mixer.music.set_volume(self.music_volume)
         except Exception as e:
             logger.error(f"Error setting music volume: {e}", exc_info=True)
-
-audio_controller = AudioController()

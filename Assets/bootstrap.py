@@ -1,6 +1,7 @@
 import sys
 import os
 import importlib
+import traceback
 
 def run_game():
     # Получаем путь к текущей папке (Assets)
@@ -31,9 +32,15 @@ def run_game():
         print("Current sys.path:")
         for path in sys.path:
             print(f"  - {path}")
+        with open("bootstrap_error.log", "w", encoding="utf-8") as f:
+            f.write("ImportError: " + str(e) + "\n")
+            f.write(traceback.format_exc())
         raise
     except Exception as e:
         print(f"Error running game: {e}")
+        with open("bootstrap_error.log", "w", encoding="utf-8") as f:
+            f.write("Exception: " + str(e) + "\n")
+            f.write(traceback.format_exc())
         raise
 
 if __name__ == '__main__':

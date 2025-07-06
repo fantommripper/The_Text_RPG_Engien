@@ -7,6 +7,8 @@ from .Spells import Spells
 from typing import List
 
 class Player:
+    _instance = None
+
     def __init__(self):
         self.name = "NULL"
         self._race: Race | None = None
@@ -126,5 +128,8 @@ class Player:
         
         return player
 
-
-player = Player()
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance

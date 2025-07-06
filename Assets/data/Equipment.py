@@ -1,4 +1,6 @@
 class Equipment:
+    _instance = None
+
     def __init__(self):
         self.helmetID = None
         self.chestplateID = None
@@ -22,5 +24,11 @@ class Equipment:
             data['weapon2ID']
         )
 
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
 
-equipment = Equipment()
+
+# Удаляю строку создания глобального экземпляра, если есть

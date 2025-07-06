@@ -1,4 +1,4 @@
-from controller.LibController import lib_controller
+from controller.LibController import LibController
 
 from lib.Logger import logger
 from lib.Consolas import PlayerMapConfig
@@ -10,6 +10,6 @@ class WorldMapTest():
         self.level = Levels.Level0()
 
     def run(self):
-        lib_controller.consolas.create_player_map(level_map=self.level)
+        LibController.get_instance().consolas.create_player_map(level_map=self.level)
 
 world_map_test = WorldMapTest()
