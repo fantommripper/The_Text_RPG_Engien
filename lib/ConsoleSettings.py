@@ -13,7 +13,7 @@ import pygetwindow as gw
 
 from lib.Logger import logger
 from lib.SaveManager import save_manager
-from controller.AudioController import AudioController
+from Assets.controller.AudioController import audio_controller
 
 
 class TerminalState(Enum):
@@ -550,7 +550,7 @@ class ConsoleSettings:
             logger.info("Game data saved successfully")
             
             # Останавливаем музыку
-            AudioController.get_instance().stop_music()
+            audio_controller.stop_music()
             logger.info("Audio stopped successfully")
             
             # Завершаем curses
@@ -607,7 +607,7 @@ class ConsoleSettings:
             # Попытка экстренного выхода
             try:
                 curses.endwin()
-                AudioController.get_instance().stop_music()
+                audio_controller.stop_music()
             except:
                 pass
             raise TerminalOperationError(f"Critical exit error: {e}")

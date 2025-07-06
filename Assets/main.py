@@ -6,15 +6,16 @@ from lib.Logger import logger
 from lib.SaveManager import save_manager
 from lib.Localization import loc
 
-from controller.MenuController import MenuController
+from controller.MenuController import menu_controller
 from controller.LibController import LibController
-from controller.AudioController import AudioController
+from controller.AudioController import audio_controller
 
 from data.Config import config
 
 class App():
     def __init__(self):
         self.win = None
+        self.lib_controller = LibController.get_instance()
 
     def start(self, stdscr):
         logger.info("Starting game")
@@ -31,7 +32,7 @@ class App():
         self.win.clear()
         self.win.refresh()
 
-        LibController.get_instance().load_lib(self.win)
+        self.lib_controller.load_lib(self.win)
 
         self.run()
 
@@ -40,20 +41,20 @@ class App():
         loc.set_language(config.language)
 
         if config.loading == 0:
-            LibController.get_instance().consolas.loading_animation()
+            self.lib_controller.consolas.loading_animation()
         else:
-            LibController.get_instance().consolas.fast_loading()
+            self.lib_controller.consolas.fast_loading()
 
         config.loading += 1
 
-        AudioController.get_instance().play_music("background")
+        audio_controller.get_instance().play_music("background")
         #menu_controller.show_world_map_test()
-        MenuController.get_instance().show_main_menu()
+        menu_controller.get_instance().show_main_menu()
 
         while True:
             c = self.win.getch()
             if c != -1:
-                LibController.get_instance().input_controller.handle_key(c)
+                self.lib_controller.input_controller.handle_key(c)
             time.sleep(0.01)
 
 def main():
@@ -67,7 +68,7 @@ def main():
         logger.error(f'ERROR: {str(e)}', exc_info=True)
 
         curses.endwin()
-        AudioController.get_instance().stop_music()
+        audio_controller.get_instance().stop_music()
         quit(1)
 
 if __name__ == '__main__':

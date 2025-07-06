@@ -3,8 +3,8 @@ import time as t
 
 from lib.widgets.BasePassiveWidget import BasePassiveWidget
 from lib.Logger import logger
-from controller.AudioController import AudioController
-from data.Config import config
+from Assets.controller.AudioController import audio_controller
+from Assets.data.Config import config
 
 class TableWidget(BasePassiveWidget):
     def __init__(self, parent, *args, style="info", clear=True, separator_positions=None,
@@ -53,7 +53,7 @@ class TableWidget(BasePassiveWidget):
             self._separator_up_error()
 
         if self._animation : t.sleep(config.delayOutput)
-        AudioController.get_instance().play_random_print_sound()
+        audio_controller.play_random_print_sound()
         self.table_pad.refresh(0, 0, self.table_y, self.table_x,
                                self.table_y + self._height + 1,
                                self.table_x + self._width + 6)
@@ -75,7 +75,7 @@ class TableWidget(BasePassiveWidget):
 
     def _draw_table_footer(self):
         if self._animation : t.sleep(config.delayOutput)
-        AudioController.get_instance().play_random_print_sound()
+        audio_controller.play_random_print_sound()
 
         if self._style == "info":
             self._separator_down_info()
@@ -127,7 +127,7 @@ class TableWidget(BasePassiveWidget):
                 line = line[:max_w]
             self.table_pad.addstr(self.table_y_pad, 0, line)
             self.table_y_pad += 1
-            AudioController.get_instance().play_random_print_sound()
+            audio_controller.play_random_print_sound()
         except ValueError as e:
             logger.error(f"Error formatting line with text='{text}', format_spec='{format_spec}': {e}")
             raise

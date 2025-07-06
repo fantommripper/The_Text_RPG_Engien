@@ -4,10 +4,10 @@ from typing import Callable, List
 
 from lib.widgets.BaseActiveWidget import BaseActiveWidget
 
-from controller.LibController import LibController
-from controller.AudioController import AudioController
+from Assets.controller.LibController import lib_controller
+from Assets.controller.AudioController import audio_controller
 
-from data.Config import config
+from Assets.data.Config import config
 
 class TextBoxWidget(BaseActiveWidget):
     def __init__(self, parent, tableAlignment: str = "c", clear: bool = True,
@@ -48,7 +48,7 @@ class TextBoxWidget(BaseActiveWidget):
 
     def _register_input_handlers(self):
         for k in list(range(32, 127)) + [curses.KEY_ENTER, 10, 13, curses.KEY_BACKSPACE, 127, 8]:
-            eid = LibController.get_instance().input_controller.add_input_event(k, lambda k=k: self._on_key(k))
+            eid = lib_controller.input_controller.add_input_event(k, lambda k=k: self._on_key(k))
             self._input_events.append(eid)
 
     def draw(self):
@@ -73,19 +73,19 @@ class TextBoxWidget(BaseActiveWidget):
         self.text_box_win.addstr("Xx" + "_" * (self._width + 2) + "xX\n")
         if self.is_first_display:
             t.sleep(config.delayOutput)
-            AudioController.get_instance().play_random_print_sound()
+            audio_controller.play_random_print_sound()
             self.text_box_win.refresh()
 
         self.text_box_win.addstr("||" + " " * (self._width + 2) + "||\n")
         if self.is_first_display:
             t.sleep(config.delayOutput)
-            AudioController.get_instance().play_random_print_sound()
+            audio_controller.play_random_print_sound()
             self.text_box_win.refresh()
 
         self.text_box_win.addstr("Xx" + "¯" * (self._width + 2) + "xX\n")
         if self.is_first_display:
             t.sleep(config.delayOutput)
-            AudioController.get_instance().play_random_print_sound()
+            audio_controller.play_random_print_sound()
             self.text_box_win.refresh()
 
         self.is_first_display = False
@@ -104,7 +104,7 @@ class TextBoxWidget(BaseActiveWidget):
         elif key in (curses.KEY_BACKSPACE, 127, 8):
             if len(self._text) > 0:
                 self._text = self._text[:-1]
-                AudioController.get_instance().play_random_print_sound()
+                audio_controller.play_random_print_sound()
 
         elif 32 <= key <= 126:
             char = chr(key)
@@ -118,7 +118,7 @@ class TextBoxWidget(BaseActiveWidget):
                 if self._input_type == "float" and char == '.' and '.' in self._text:
                     return
                 self._text += char
-                AudioController.get_instance().play_random_print_sound()
+                audio_controller.play_random_print_sound()
 
         self._win.move(self._cursor_y, self._cursor_x)
         self._update_text_box()

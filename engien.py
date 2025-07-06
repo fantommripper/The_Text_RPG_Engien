@@ -13,7 +13,7 @@ class Engine:
         self.scene_editor = None
         self.game_runner = None
         self._init_dpg()
-    
+
     def _get_system_font(self):
         local_font = os.path.join(os.path.dirname(__file__), "Roboto.ttf")
         if os.path.exists(local_font):

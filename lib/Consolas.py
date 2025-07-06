@@ -2,7 +2,7 @@ from typing import List, Dict, Optional, Tuple, Any, Union
 from dataclasses import dataclass
 from enum import Enum
 
-from data.LevelMap import Levels
+from Assets.data.LevelMap import Levels
 
 from lib.widgets.MenuWidget import MenuWidget
 from lib.widgets.TextBoxWidget import TextBoxWidget
@@ -129,7 +129,6 @@ class Consolas:
         
         Args:
             config: Конфигурация приложения
-            player: Объект игрока
             win: Окно curses
         """
         self._config = config
@@ -145,7 +144,7 @@ class Consolas:
     def config(self) -> Any:
         """Получить конфигурацию"""
         return self._config
-    
+
     @property
     def win(self) -> Any:
         """Получить окно curses"""
@@ -450,7 +449,7 @@ class Consolas:
             
             widget = AnimationWidget(
                 self, frames, config.delay, config.alignment.value,
-                config.x, config.y, config.clear, 
+                config.x, config.y, config.clear,
                 config.x_operation.value, config.y_operation.value, config.audio
             )
             

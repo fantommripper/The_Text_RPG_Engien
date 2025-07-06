@@ -1,9 +1,9 @@
 import curses
 
-from data.LevelMap import Levels
+from Assets.data.LevelMap import Levels
 from lib.widgets.BaseActiveWidget import BaseActiveWidget
 from lib.Logger import logger
-from controller.LibController import LibController
+from Assets.controller.LibController import lib_controller
 
 
 class PlayerMapWidget(BaseActiveWidget):
@@ -103,7 +103,7 @@ class PlayerMapWidget(BaseActiveWidget):
             self._input_events = []
             for key, handler in movement_keys:
                 try:
-                    event = LibController.get_instance().input_controller.add_input_event(ord(key), handler)
+                    event = lib_controller.input_controller.add_input_event(ord(key), handler)
                     if event:
                         self._input_events.append(event)
                 except Exception as e:
