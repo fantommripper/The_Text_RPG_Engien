@@ -13,7 +13,7 @@ import pygetwindow as gw
 
 from lib.Logger import logger
 from lib.SaveManager import save_manager
-from controller.AudioController import audio_controller
+from Assets.controller.AudioController import audio_controller
 
 
 class TerminalState(Enum):

@@ -1,7 +1,7 @@
 import dearpygui.dearpygui as dpg
 from lib.Logger import logger
 from inspect import signature
-from controller.MenuController import menu_controller
+from Assets.controller.MenuController import menu_controller
 
 class Terminalium():
     def __init__(self):

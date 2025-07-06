@@ -2,8 +2,8 @@ import curses
 import curses.ascii
 from typing import List, TYPE_CHECKING
 
-from controller.LibController import lib_controller
-from controller.AudioController import audio_controller
+from Assets.controller.LibController import lib_controller
+from Assets.controller.AudioController import audio_controller
 
 if TYPE_CHECKING:
     from lib.widgets.BaseActiveWidget import BaseActiveWidget
