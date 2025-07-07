@@ -5,11 +5,12 @@ from lib.Localization import loc
 from controller.MenuController import MenuController
 from controller.LibController import LibController
 
-from data.Config import config
+from data.Config import Config
 
 class SettingMenu:
     def __init__(self):
         self.consolas = LibController.get_instance().consolas
+        self.config = Config.get_instance()
         self.menu = None
 
     def _stop_menu(self):
@@ -37,7 +38,7 @@ class SettingMenu:
     def _output_delay_menu(self):
         self._stop_menu()
         def set_delay(delay):
-            config.delayOutput = float(delay)
+            self.config.delayOutput = float(delay)
             logger.info(f"Set output delay: {delay}")
             self.run()
 
@@ -56,8 +57,8 @@ class SettingMenu:
     def _language_menu(self):
         self._stop_menu()
         def set_lang(lang):
-            config.language = lang
-            loc.set_language(config.language)
+            self.config.language = lang
+            loc.set_language(self.config.language)
             logger.info(f"Set language: {lang}")
             self.run()
 
@@ -74,7 +75,7 @@ class SettingMenu:
     def _cheats_menu(self):
         self._stop_menu()
         def set_cheats(val):
-            config.cheats = val
+            self.config.cheats = val
             logger.info(f"Set cheats: {val}")
             self.run()
 

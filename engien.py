@@ -78,7 +78,7 @@ class Engine:
         
         # Автоматически открываем файл-менеджер при запуске
         self._open_file_manager_window()
-        
+
         logger.info("DearPyGUI initialized")
         dpg.show_viewport()
 
@@ -107,9 +107,9 @@ class Engine:
             dpg.add_text("Version 1.0.0")
             dpg.add_separator()
             dpg.add_text("Features:")
-            dpg.add_text("• File Manager")
-            dpg.add_text("• Scene Editor") 
-            dpg.add_text("• Game Runner")
+            dpg.add_text("- File Manager")
+            dpg.add_text("- Scene Editor")
+            dpg.add_text("- Game Runner")
             dpg.add_separator()
             dpg.add_button(label="Close", callback=lambda: dpg.delete_item("about_dialog"))
 
@@ -126,7 +126,7 @@ class Engine:
     def run(self):
         while dpg.is_dearpygui_running():
             dpg.render_dearpygui_frame()
-        
+
         # Очистка при выходе
         if self.game_runner:
             self.game_runner.cleanup()

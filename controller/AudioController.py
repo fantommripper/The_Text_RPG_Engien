@@ -25,7 +25,7 @@ class AudioController:
 
     def _get_sound_path(self, filename):
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(base_dir, "..", "data", "sound", filename)
+        return os.path.join(base_dir, "..", "Assets", "data", "sound", filename)
 
     def _load_resources(self):
         sound_files = ['print.wav', 'print2.wav']

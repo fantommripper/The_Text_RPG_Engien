@@ -2,8 +2,8 @@ import curses
 import curses.ascii
 from typing import List, TYPE_CHECKING
 
-from Assets.controller.LibController import lib_controller
-from Assets.controller.AudioController import audio_controller
+from controller.LibController import LibController
+from controller.AudioController import AudioController
 
 if TYPE_CHECKING:
     from lib.widgets.BaseActiveWidget import BaseActiveWidget
@@ -24,7 +24,7 @@ class TabControl:
         self._widgets: List['BaseActiveWidget'] = []
         self._current_focus = 0
 
-        self._input_controller = lib_controller.input_controller
+        self._input_controller = LibController.get_instance().input_controller
 
         self.start_tab_control()
 
@@ -100,7 +100,7 @@ class TabControl:
 
         self._widgets[self._current_focus].set_pause(True)
         self._current_focus = (self._current_focus + 1) % len(self._widgets)
-        audio_controller.play_random_print_sound()
+        AudioController.get_instance().play_random_print_sound()
         self._widgets[self._current_focus].set_pause(False)
 
     def _preceding_widget(self):
@@ -109,5 +109,5 @@ class TabControl:
 
         self._widgets[self._current_focus].set_pause(True)
         self._current_focus = (self._current_focus - 1) % len(self._widgets)
-        audio_controller.play_random_print_sound()
+        AudioController.get_instance().play_random_print_sound()
         self._widgets[self._current_focus].set_pause(False)

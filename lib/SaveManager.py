@@ -2,7 +2,7 @@ import json
 import os
 from cryptography.fernet import Fernet
 
-from Assets.data.Config import config
+from data.Config import Config
 
 from lib.Logger import logger
 
@@ -87,13 +87,13 @@ class SaveManager:
             os.remove(encrypted_file)
 
     def load_all_game_data(self):
-        config_save = self.load_data("config", config)
+        config_save = self.load_data("config", Config.get_instance())
 
         if config_save is None:
-            self.save_data(config.to_dict(), "config")
+            self.save_data(Config.get_instance().to_dict(), "config")
 
     def save_all_game_data(self):
-        self.save_data(config.to_dict(), "config")
+        self.save_data(Config.get_instance().to_dict(), "config")
 
 
 save_manager = SaveManager()

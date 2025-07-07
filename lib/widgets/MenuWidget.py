@@ -3,9 +3,9 @@ from typing import Dict, List, Callable
 import time as t
 
 from lib.widgets.BaseActiveWidget import BaseActiveWidget
-from Assets.controller.AudioController import audio_controller
-from Assets.controller.LibController import lib_controller
-from Assets.data.Config import config
+from controller.AudioController import AudioController
+from controller.LibController import LibController
+from data.Config import Config
 
 class MenuWidget(BaseActiveWidget):
     def __init__(self, parent, title: str, options: Dict[str, Callable],
@@ -68,12 +68,12 @@ class MenuWidget(BaseActiveWidget):
         curses.init_pair(3, curses.COLOR_WHITE, bc)
 
     def _register_input_handlers(self):
-        self._input_event_up = lib_controller.input_controller.add_input_event(curses.KEY_UP, self._option_up)
-        self._input_event_down = lib_controller.input_controller.add_input_event(curses.KEY_DOWN, self._option_down)
+        self._input_event_up = LibController.get_instance().input_controller.add_input_event(curses.KEY_UP, self._option_up)
+        self._input_event_down = LibController.get_instance().input_controller.add_input_event(curses.KEY_DOWN, self._option_down)
         self._input_event_enter = [
-            lib_controller.input_controller.add_input_event(curses.KEY_ENTER, self._option_enter),
-            lib_controller.input_controller.add_input_event(10, self._option_enter),
-            lib_controller.input_controller.add_input_event(13, self._option_enter)
+            LibController.get_instance().input_controller.add_input_event(curses.KEY_ENTER, self._option_enter),
+            LibController.get_instance().input_controller.add_input_event(10, self._option_enter),
+            LibController.get_instance().input_controller.add_input_event(13, self._option_enter)
         ]
 
     def draw(self):
@@ -121,21 +121,21 @@ class MenuWidget(BaseActiveWidget):
 
         self.menu_win.addstr("Xx" + "_" * (self._width + 2) + "xX\n", curses.color_pair(main_color))
         if self.is_first_display:
-            t.sleep(config.delayOutput)
-            audio_controller.play_random_print_sound()
+            t.sleep(Config.get_instance().delayOutput)
+            AudioController.get_instance().play_random_print_sound()
             self.menu_win.refresh()
 
         self.menu_win.addstr("|| {:^{width}} ||\n".format(self.title, width=self._width),
                             curses.color_pair(main_color))
         if self.is_first_display:
-            t.sleep(config.delayOutput)
-            audio_controller.play_random_print_sound()
+            t.sleep(Config.get_instance().delayOutput)
+            AudioController.get_instance().play_random_print_sound()
             self.menu_win.refresh()
 
         self.menu_win.addstr("||" + "-" * (self._width + 2) + "||\n", curses.color_pair(main_color))
         if self.is_first_display:
-            t.sleep(config.delayOutput)
-            audio_controller.play_random_print_sound()
+            t.sleep(Config.get_instance().delayOutput)
+            AudioController.get_instance().play_random_print_sound()
             self.menu_win.refresh()
 
         for index, option in enumerate(self.options):
@@ -151,8 +151,8 @@ class MenuWidget(BaseActiveWidget):
                 self.menu_win.addstr(" ||\n", curses.color_pair(main_color))
             
             if self.is_first_display:
-                t.sleep(config.delayOutput)
-                audio_controller.play_random_print_sound()
+                t.sleep(Config.get_instance().delayOutput)
+                AudioController.get_instance().play_random_print_sound()
                 self.menu_win.refresh()
 
         self.menu_win.addstr("Xx" + "¯" * (self._width + 2) + "xX\n", curses.color_pair(main_color))
@@ -160,20 +160,20 @@ class MenuWidget(BaseActiveWidget):
     def _option_up(self):
         if not self._pause:
             self.option = (self.option - 1) % len(self.options)
-            audio_controller.play_random_print_sound()
+            AudioController.get_instance().play_random_print_sound()
             self._update_menu()
 
     def _option_down(self):
         if not self._pause:
             self.option = (self.option + 1) % len(self.options)
-            audio_controller.play_random_print_sound()
+            AudioController.get_instance().play_random_print_sound()
             self._update_menu()
 
     def _option_enter(self):
         if not self._pause:
             selected_option = self.options[self.option]
             self.option_handlers[selected_option]()
-            audio_controller.play_random_print_sound()
+            AudioController.get_instance().play_random_print_sound()
 
     def set_pause(self, pause: bool):
         super().set_pause(pause)

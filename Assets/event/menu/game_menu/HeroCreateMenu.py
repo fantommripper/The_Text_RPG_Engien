@@ -57,11 +57,13 @@ class HeroCreateMenu():
         self._update_output_table()
 
     def _choose_name(self, name):
-        player.set_name(name)
+        self.player.set_name(name)
         self.player_name = name
         self._update_output_table()
 
     def _enter_hero(self):
+        if self.player_name == "None" or self.player_race == "None" or self.player_class == "None": return
+
         self.player.set_class(self.player_class)
         self.player.set_race(self.player_race)
 
@@ -122,10 +124,10 @@ class HeroCreateMenu():
         self.chosen_race_Menu = self.consolas.create_menu(
             title=loc.t("entry_race"),
             options={
-                loc.t("human"): lambda: self._choose_race("Human"),
-                loc.t("kobold"): lambda: self._choose_race("Kobold"),
-                loc.t("owlin"): lambda: self._choose_race("Owlin"),
-                loc.t("naga"): lambda: self._choose_race("Naga"),
+                loc.t("human"): lambda: self._choose_race("human"),
+                loc.t("kobold"): lambda: self._choose_race("kobold"),
+                loc.t("owlin"): lambda: self._choose_race("owlin"),
+                loc.t("naga"): lambda: self._choose_race("naga"),
             },
             Ydo="+",
             Xdo="+",

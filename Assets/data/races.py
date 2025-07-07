@@ -103,10 +103,10 @@ class Naga(Race):
         return ["Poison Immunity", "Constrict", "Water Breathing"]  # Танковые способности
 
 AVAILABLE_RACES = {
-    "Human": Human,
-    "Kobold": Kobold,
-    "Owlin": Owlin,
-    "Naga": Naga
+    "human": Human,
+    "kobold": Kobold,
+    "owlin": Owlin,
+    "naga": Naga
 }
 
 # Функция для анализа баланса

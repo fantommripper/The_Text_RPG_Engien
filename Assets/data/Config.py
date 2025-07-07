@@ -1,3 +1,5 @@
+from lib.Logger import logger
+
 class Config:
     _instance = None
 
@@ -13,6 +15,7 @@ class Config:
         self.anim = True
         self.loading = 0
         self.cheats = True
+        logger.warning("Config initialized")
 
     def to_dict(self):
         return {
@@ -29,7 +32,3 @@ class Config:
         self.anim = data['anim']
         self.loading = data['loading']
         self.cheats = data['cheats']
-
-
-
-config = Config.get_instance()

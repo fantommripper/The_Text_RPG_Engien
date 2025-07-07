@@ -1,4 +1,4 @@
-from data.Config import config
+from data.Config import Config
 from lib.Logger import logger
 
 class LibController():
@@ -17,7 +17,7 @@ class LibController():
 
     def load_consolas(self, win):
         from lib.Consolas import Consolas
-        self.consolas = Consolas(config, win)
+        self.consolas = Consolas(Config.get_instance(), win)
 
     def load_input_controller(self):
         from lib.InputController import InputController

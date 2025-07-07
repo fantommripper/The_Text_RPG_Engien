@@ -6,16 +6,17 @@ from lib.Logger import logger
 from lib.SaveManager import save_manager
 from lib.Localization import loc
 
-from controller.MenuController import menu_controller
+from controller.MenuController import MenuController
 from controller.LibController import LibController
-from controller.AudioController import audio_controller
+from controller.AudioController import AudioController
 
-from data.Config import config
+from data.Config import Config
 
 class App():
     def __init__(self):
         self.win = None
         self.lib_controller = LibController.get_instance()
+        self.config = Config.get_instance()
 
     def start(self, stdscr):
         logger.info("Starting game")
@@ -38,18 +39,18 @@ class App():
 
     def run(self):
         save_manager.load_all_game_data()
-        loc.set_language(config.language)
+        loc.set_language(self.config.language)
 
-        if config.loading == 0:
+        if self.config.loading == 0:
             self.lib_controller.consolas.loading_animation()
         else:
             self.lib_controller.consolas.fast_loading()
 
-        config.loading += 1
+        self.config.loading += 1
 
-        audio_controller.get_instance().play_music("background")
-        #menu_controller.show_world_map_test()
-        menu_controller.get_instance().show_main_menu()
+        AudioController.get_instance().play_music("background")
+        #MenuController.get_instance().show_world_map_test()
+        MenuController.get_instance().show_main_menu()
 
         while True:
             c = self.win.getch()
@@ -68,7 +69,7 @@ def main():
         logger.error(f'ERROR: {str(e)}', exc_info=True)
 
         curses.endwin()
-        audio_controller.get_instance().stop_music()
+        AudioController.get_instance().stop_music()
         quit(1)
 
 if __name__ == '__main__':

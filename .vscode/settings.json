@@ -50,6 +50,9 @@
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "cSpell.language": "en,ru"
+    "cSpell.language": "en,ru",
+    "python.analysis.extraPaths": [
+        "./Assets"
+    ]
     
 }

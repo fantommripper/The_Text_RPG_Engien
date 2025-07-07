@@ -1,4 +1,5 @@
 import json5
+
 class Localization:
     def __init__(self):
         self.strings = None

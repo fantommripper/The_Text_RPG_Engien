@@ -147,6 +147,14 @@ class Cleric(HeroClass):
     def weapon_proficiency(self) -> list:
         return ["Mace", "Shield", "Medium Armor"]
 
+AVAILABLE_CLASSES = {
+    "swordsman": Swordsman,
+    "magician": Magician,
+    "yhief": Thief,
+    "archer": Archer,
+    "cleric": Cleric
+}
+
 # —————————————————————————————— Анализ классов и их баланса ——————————————————————————————
 
 def analyze_class_balance(classes_dict, base_stats=None):
@@ -320,16 +328,6 @@ def analyze_race_class_synergy():
         print(f"{i}. {combo:<20}: Сила={power:.1f} "
               f"(Урон={stats['Dm']}, HP={stats['Hp']}, "
               f"Скорость={stats['speed']}, Мана={stats['maxMana']})")
-
-
-
-AVAILABLE_CLASSES = {
-    "Swordsman": Swordsman,
-    "Magician": Magician,
-    "Thief": Thief,
-    "Archer": Archer,
-    "Cleric": Cleric
-}
 
 if __name__ == "__main__":
     print("====== АНАЛИЗ КЛАССОВ ======"+"\n")

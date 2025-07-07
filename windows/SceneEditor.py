@@ -17,7 +17,7 @@ class SceneEditor:
         self.window_id = None
         self.assets_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Assets")
         self.scenes_path = os.path.join(self.assets_path, "event", "menu")
-        self.controller_path = os.path.join(self.assets_path, "controller", "MenuController.py")
+        self.controller_path = os.path.join("controller", "MenuController.py")
         self.current_scene_type = "test_world_menu"  # по умолчанию
         self.existing_scenes = {}
         self.safe_name_pattern = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')  # Валидные имена классов Python
@@ -120,7 +120,7 @@ class SceneEditor:
         
         # Проверяем зарезервированные слова Python
         reserved_words = [
-            'False', 'None', 'True', 'and', 'as', 'assert', 'break', 'class', 'continue', 
+            'False', 'None', 'True', 'and', 'as', 'assert', 'break', 'class', 'continue',
             'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 
             'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 
             'raise', 'return', 'try', 'while', 'with', 'yield'
@@ -171,7 +171,7 @@ class {class_name}(BaseScene):
 
         method_code = f'''
     def {method_name}(self):
-        from event.menu.{self.current_scene_type}.{file_name} import {snake_case_name}
+        from Assets.event.menu.{self.current_scene_type}.{file_name} import {snake_case_name}
         {snake_case_name}.run()'''
         
         return method_name, method_code
