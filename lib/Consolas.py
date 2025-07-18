@@ -15,14 +15,14 @@ from lib.Logger import logger
 
 
 class AlignmentType(Enum):
-    """Типы выравнивания для виджетов"""
+    """Alignment types for widgets"""
     CENTER = 'c'
     RIGHT = 'r'
     LEFT = 'l'
 
 
 class PositionOperation(Enum):
-    """Операции для позиционирования"""
+    """Positioning operations"""
     SET = "="
     ADD = "+"
     SUBTRACT = "-"
@@ -30,21 +30,21 @@ class PositionOperation(Enum):
 
 @dataclass
 class Position:
-    """Структура для хранения позиции"""
+    """Structure for storing position"""
     x: int
     y: int
 
 
 @dataclass
 class WindowDimensions:
-    """Размеры окна"""
+    """Window dimensions"""
     width: int
     height: int
 
 
 @dataclass
 class WidgetConfig:
-    """Базовая конфигурация для всех виджетов"""
+    """Base configuration for all widgets"""
     alignment: AlignmentType = AlignmentType.CENTER
     x: Optional[int] = None
     y: Optional[int] = None
@@ -56,7 +56,7 @@ class WidgetConfig:
 
 @dataclass
 class PlayerMapConfig:
-    """Базовая конфигурация для карты"""
+    """Base configuration for the map"""
     map: Levels.BaseLevel = None
     alignment: AlignmentType = AlignmentType.CENTER
     x: Optional[int] = None
@@ -67,7 +67,7 @@ class PlayerMapConfig:
 
 @dataclass
 class TableConfig(WidgetConfig):
-    """Конфигурация для таблиц"""
+    """Configuration for tables"""
     style: str = "info"
     separator_positions: Optional[List[int]] = None
     text_alignment: Optional[Dict[int, AlignmentType]] = None
@@ -77,7 +77,7 @@ class TableConfig(WidgetConfig):
 
 @dataclass
 class MenuConfig(WidgetConfig):
-    """Конфигурация для меню"""
+    """Configuration for menus"""
     color: str = 'cyan'
     tips: bool = True
     info_width: int = 50
@@ -86,7 +86,7 @@ class MenuConfig(WidgetConfig):
 
 @dataclass
 class TextBoxConfig(WidgetConfig):
-    """Конфигурация для текстовых полей"""
+    """Configuration for text boxes"""
     width: int = 22
     max_symbol: int = 22
     input_type: str = "str"
@@ -95,41 +95,41 @@ class TextBoxConfig(WidgetConfig):
 
 @dataclass
 class AnimationConfig(WidgetConfig):
-    """Конфигурация для анимации"""
+    """Configuration for animations"""
     delay: float = 0.3
     audio: bool = True
 
 
 class ConsolasError(Exception):
-    """Базовый класс исключений для Consolas"""
+    """Base exception class for Consolas"""
     pass
 
 
 class PositionCalculationError(ConsolasError):
-    """Ошибка при вычислении позиции"""
+    """Error during position calculation"""
     pass
 
 
 class WidgetCreationError(ConsolasError):
-    """Ошибка при создании виджета"""
+    """Error during widget creation"""
     pass
 
 
 class Consolas:
     """
-    Основной класс для управления консольным интерфейсом
+    Main class for managing the console interface
     
-    Предоставляет методы для создания различных виджетов UI
-    и управления их позиционированием на экране.
+    Provides methods for creating various UI widgets
+    and managing their positioning on the screen.
     """
     
     def __init__(self, config: Any, win: Any) -> None:
         """
-        Инициализация Consolas
+        Initialize Consolas
         
         Args:
-            config: Конфигурация приложения
-            win: Окно curses
+            config: Application configuration
+            win: Curses window
         """
         self._config = config
         self._win = win
@@ -142,26 +142,26 @@ class Consolas:
     
     @property
     def config(self) -> Any:
-        """Получить конфигурацию"""
+        """Get the configuration"""
         return self._config
 
     @property
     def win(self) -> Any:
-        """Получить окно curses"""
+        """Get the curses window"""
         return self._win
     
     @property
     def current_focus(self) -> int:
-        """Получить текущий фокус"""
+        """Get the current focus"""
         return self._current_focus
     
     @current_focus.setter
     def current_focus(self, value: int) -> None:
-        """Установить текущий фокус"""
+        """Set the current focus"""
         self._current_focus = value
     
     def clear_window(self) -> None:
-        """Очистить окно и обновить отображение"""
+        """Clear the window and update the display"""
         try:
             self._win.clear()
             self._win.refresh()
@@ -173,10 +173,10 @@ class Consolas:
     
     def _get_window_dimensions(self) -> WindowDimensions:
         """
-        Получить размеры окна с кэшированием
+        Get window dimensions with caching
         
         Returns:
-            WindowDimensions: Размеры окна
+            WindowDimensions: Window dimensions
         """
         if self._window_dimensions_cache is None:
             try:
@@ -190,32 +190,32 @@ class Consolas:
     
     def _calculate_center_position(self, width: int, height: int) -> Position:
         """
-        Вычислить центральную позицию
+        Calculate the center position
         
         Args:
-            width: Ширина виджета
-            height: Высота виджета
+            width: Widget width
+            height: Widget height
             
         Returns:
-            Position: Центральная позиция
+            Position: Center position
         """
         dimensions = self._get_window_dimensions()
         center_x = (dimensions.width - width) // 2
         center_y = (dimensions.height - height) // 2
         return Position(center_x, center_y)
     
-    def _apply_position_operation(self, base_value: int, offset: Optional[int], 
-                                 operation: PositionOperation) -> int:
+    def _apply_position_operation(self, base_value: int, offset: Optional[int],
+                                operation: PositionOperation) -> int:
         """
-        Применить операцию позиционирования
+        Apply a positioning operation
         
         Args:
-            base_value: Базовое значение
-            offset: Смещение
-            operation: Тип операции
+            base_value: Base value
+            offset: Offset
+            operation: Operation type
             
         Returns:
-            int: Результирующее значение
+            int: Resulting value
         """
         if offset is None:
             return base_value
@@ -229,31 +229,31 @@ class Consolas:
         else:
             raise PositionCalculationError(f"Unknown position operation: {operation}")
     
-    def calculate_position(self, 
-                          width: int, 
-                          height: int, 
-                          alignment: Union[str, AlignmentType], 
-                          x: Optional[int] = None, 
-                          y: Optional[int] = None, 
-                          x_operation: Union[str, PositionOperation] = PositionOperation.SET, 
+    def calculate_position(self,
+                          width: int,
+                          height: int,
+                          alignment: Union[str, AlignmentType],
+                          x: Optional[int] = None,
+                          y: Optional[int] = None,
+                          x_operation: Union[str, PositionOperation] = PositionOperation.SET,
                           y_operation: Union[str, PositionOperation] = PositionOperation.SET) -> Tuple[int, int]:
         """
-        Вычислить позицию виджета на экране
+        Calculate the widget's position on the screen
         
         Args:
-            width: Ширина виджета
-            height: Высота виджета
-            alignment: Тип выравнивания
-            x: X координата
-            y: Y координата
-            x_operation: Операция для X
-            y_operation: Операция для Y
+            width: Widget width
+            height: Widget height
+            alignment: Alignment type
+            x: X coordinate
+            y: Y coordinate
+            x_operation: X operation
+            y_operation: Y operation
             
         Returns:
-            Tuple[int, int]: Координаты (x, y)
+            Tuple[int, int]: Coordinates (x, y)
             
         Raises:
-            PositionCalculationError: При ошибке вычисления позиции
+            PositionCalculationError: If position calculation fails
         """
         try:
             # Преобразуем строки в enum
@@ -298,13 +298,13 @@ class Consolas:
     
     def create_fast_loading(self, speed: float = 0.04) -> FastLoadingWidget:
         """
-        Создать виджет быстрой загрузки
+        Create a fast loading widget
         
         Args:
-            speed: Скорость анимации
+            speed: Animation speed
             
         Returns:
-            FastLoadingWidget: Виджет быстрой загрузки
+            FastLoadingWidget: Fast loading widget
         """
         try:
             widget = FastLoadingWidget(self, speed)
@@ -315,19 +315,19 @@ class Consolas:
             raise WidgetCreationError(f"FastLoadingWidget creation failed: {e}")
     
     def create_table(self,
-                     *args: str,
-                     config: Optional[TableConfig] = None,
-                     **kwargs) -> TableWidget:
+                    *args: str,
+                    config: Optional[TableConfig] = None,
+                    **kwargs) -> TableWidget:
         """
-        Создать виджет таблицы
-
+        Create a table widget
+        
         Args:
-            *args: Содержимое таблицы
-            config: Конфигурация таблицы
-            **kwargs: Дополнительные параметры (для обратной совместимости)
-
+            *args: Table content
+            config: Table configuration
+            **kwargs: Additional parameters (for backward compatibility)
+            
         Returns:
-            TableWidget: Виджет таблицы
+            TableWidget: Table widget
         """
         try:
             # Если конфигурация не передана, создаем из kwargs
@@ -369,19 +369,19 @@ class Consolas:
             raise WidgetCreationError(f"TableWidget creation failed: {e}")
 
     def create_player_map(self,
-                    level_map: Levels.BaseLevel = None,  # Добавляем обязательный параметр
-                    config: Optional[PlayerMapConfig] = None,
-                    **kwargs) -> PlayerMapWidget:
+                        level_map: Levels.BaseLevel = None,  # Adding required parameter
+                        config: Optional[PlayerMapConfig] = None,
+                        **kwargs) -> PlayerMapWidget:
         """
-        создать виджет карты мира
-
+        Create a world map widget
+        
         Args:
-            level_map: Карта уровня (обязательный параметр)
-            config: Конфигурация карты
-            **kwargs: Дополнительные параметры (для обратной совместимости)
-
+            level_map: Level map (required parameter)
+            config: Map configuration
+            **kwargs: Additional parameters (for backward compatibility)
+            
         Returns:
-            PlayerMapWidget: Виджет карты мира
+            PlayerMapWidget: World map widget
         """
         try:
             # Проверяем, что карта передана
@@ -419,20 +419,20 @@ class Consolas:
             logger.error(f"Failed to create PlayerMapWidget: {e}")
             raise WidgetCreationError(f"PlayerMapWidget creation failed: {e}")
 
-    def create_animation(self, 
-                        frames: List[str], 
+    def create_animation(self,
+                        frames: List[str],
                         config: Optional[AnimationConfig] = None,
                         **kwargs) -> AnimationWidget:
         """
-        Создать виджет анимации
+        Create an animation widget
         
         Args:
-            frames: Кадры анимации
-            config: Конфигурация анимации
-            **kwargs: Дополнительные параметры (для обратной совместимости)
+            frames: Animation frames
+            config: Animation configuration
+            **kwargs: Additional parameters (for backward compatibility)
             
         Returns:
-            AnimationWidget: Виджет анимации
+            AnimationWidget: Animation widget
         """
         try:
             if config is None:
@@ -462,10 +462,10 @@ class Consolas:
     
     def create_loading_animation(self) -> LoadingAnimationWidget:
         """
-        Создать виджет анимации загрузки
+        Create a loading animation widget
         
         Returns:
-            LoadingAnimationWidget: Виджет анимации загрузки
+            LoadingAnimationWidget: Loading animation widget
         """
         try:
             widget = LoadingAnimationWidget(self)
@@ -475,24 +475,24 @@ class Consolas:
             logger.error(f"Failed to create LoadingAnimationWidget: {e}")
             raise WidgetCreationError(f"LoadingAnimationWidget creation failed: {e}")
     
-    def create_menu(self, 
-                    title: str, 
-                    options: List[str], 
-                    additional_info: Optional[Any] = None,
-                    config: Optional[MenuConfig] = None,
-                    **kwargs) -> MenuWidget:
+    def create_menu(self,
+                   title: str,
+                   options: List[str],
+                   additional_info: Optional[Any] = None,
+                   config: Optional[MenuConfig] = None,
+                   **kwargs) -> MenuWidget:
         """
-        Создать виджет меню
+        Create a menu widget
         
         Args:
-            title: Заголовок меню
-            options: Опции меню
-            additional_info: Дополнительная информация
-            config: Конфигурация меню
-            **kwargs: Дополнительные параметры (для обратной совместимости)
+            title: Menu title
+            options: Menu options
+            additional_info: Additional information
+            config: Menu configuration
+            **kwargs: Additional parameters (for backward compatibility)
             
         Returns:
-            MenuWidget: Виджет меню
+            MenuWidget: Menu widget
         """
         try:
             if config is None:
@@ -523,18 +523,18 @@ class Consolas:
             logger.error(f"Failed to create MenuWidget: {e}")
             raise WidgetCreationError(f"MenuWidget creation failed: {e}")
     
-    def create_text_box(self, 
-                        config: Optional[TextBoxConfig] = None,
-                        **kwargs) -> TextBoxWidget:
+    def create_text_box(self,
+                       config: Optional[TextBoxConfig] = None,
+                       **kwargs) -> TextBoxWidget:
         """
-        Создать виджет текстового поля
+        Create a text box widget
         
         Args:
-            config: Конфигурация текстового поля
-            **kwargs: Дополнительные параметры (для обратной совместимости)
+            config: Text box configuration
+            **kwargs: Additional parameters (for backward compatibility)
             
         Returns:
-            TextBoxWidget: Виджет текстового поля
+            TextBoxWidget: Text box widget
         """
         try:
             if config is None:

@@ -1,7 +1,14 @@
 import json5
 
 class Localization:
+    """
+    Class for managing application localization
+    Handles loading and accessing localized strings
+    """
     def __init__(self):
+        """
+        Initialize the Localization instance
+        """
         self.strings = None
 
     def set_language(self, lang_code: str):

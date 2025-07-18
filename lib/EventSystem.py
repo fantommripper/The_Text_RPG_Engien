@@ -8,7 +8,7 @@ import logging
 
 
 class EventPriority(Enum):
-    """Приоритеты выполнения обработчиков событий"""
+    """Handler execution priorities"""
     LOWEST = 0
     LOW = 1
     NORMAL = 2
@@ -18,19 +18,19 @@ class EventPriority(Enum):
 
 @dataclass
 class EventData:
-    """Базовый класс для данных события"""
+    """Base class for event data"""
     event_name: str
     timestamp: float
     source: Optional[Any] = None
     cancelled: bool = False
     
     def cancel(self) -> None:
-        """Отменить событие"""
+        """Cancel the event"""
         self.cancelled = True
 
 
 class EventHandler:
-    """Обработчик события с метаданными"""
+    """Event handler with metadata"""
     
     def __init__(self, 
                  callback: Callable[[EventData], Any],
@@ -44,7 +44,7 @@ class EventHandler:
         self._call_count = 0
         self._is_method = hasattr(callback, '__self__')
         
-        # Используем слабые ссылки для методов объектов
+        # Use weak references for object methods
         if weak_ref and self._is_method:
             self._weak_callback = weakref.WeakMethod(callback)
         else:
@@ -63,13 +63,13 @@ class EventHandler:
         return self._call_count
     
     def is_valid(self) -> bool:
-        """Проверить, что обработчик все еще валиден"""
+        """Check if handler is still valid"""
         if self._weak_callback:
             return self._weak_callback() is not None
         return True
     
     def call(self, event_data: EventData) -> Any:
-        """Вызвать обработчик"""
+        """Invoke the handler"""
         if not self.is_valid():
             return None
             
@@ -82,7 +82,7 @@ class EventHandler:
 
 
 class EventSystem:
-    """Основная система событий"""
+    """Core event system"""
     
     def __init__(self, use_threading: bool = False):
         self._handlers: Dict[str, List[EventHandler]] = {}
@@ -100,14 +100,14 @@ class EventSystem:
                   once: bool = False,
                   weak_ref: bool = False) -> EventHandler:
         """
-        Подписаться на событие
+        Subscribe to an event
 
         Args:
-            event_name: Название события
-            callback: Функция-обработчик
-            priority: Приоритет выполнения
-            once: Выполнить только один раз
-            weak_ref: Использовать слабые ссылки
+            event_name: Event name
+            callback: Handler function
+            priority: Execution priority
+            once: Execute only once
+            weak_ref: Use weak references
         """
         with self._get_lock():
             if event_name not in self._handlers:
@@ -116,22 +116,22 @@ class EventSystem:
             handler = EventHandler(callback, priority, once, weak_ref)
             self._handlers[event_name].append(handler)
             
-            # Сортируем по приоритету (от высокого к низкому)
+            # Sort by priority (highest first)
             self._handlers[event_name].sort(
                 key=lambda h: h.priority.value, 
                 reverse=True
             )
             
-            self._logger.debug(f"Подписан обработчик на событие '{event_name}'")
+            self._logger.debug(f"Handler subscribed to event '{event_name}'")
             return handler
     
     def unsubscribe(self, event_name: str, callback: Callable[[EventData], Any]) -> bool:
         """
-        Отписаться от события
+        Unsubscribe from an event
         
         Args:
-            event_name: Название события
-            callback: Функция-обработчик для удаления
+            event_name: Event name
+            callback: Handler function to remove
         """
         with self._get_lock():
             if event_name not in self._handlers:
@@ -145,7 +145,7 @@ class EventSystem:
             
             removed = original_count - len(self._handlers[event_name])
             if removed > 0:
-                self._logger.debug(f"Удалено {removed} обработчик(ов) для события '{event_name}'")
+                self._logger.debug(f"Removed {removed} handler(s) for event '{event_name}'")
             
             return removed > 0
     
@@ -154,16 +154,16 @@ class EventSystem:
              event_data: Optional[EventData] = None,
              **kwargs) -> List[Any]:
         """
-        Вызвать событие
+        Emit an event
         
         Args:
-            event_name: Название события
-            event_data: Данные события
-            **kwargs: Дополнительные параметры для создания EventData
+            event_name: Event name
+            event_data: Event data
+            **kwargs: Additional parameters for EventData creation
         """
         import time
         
-        # Создаем данные события если не переданы
+        # Create event data if not provided
         if event_data is None:
             event_data = EventData(
                 event_name=event_name,
@@ -171,13 +171,13 @@ class EventSystem:
                 **kwargs
             )
         
-        # Применяем глобальные фильтры
+        # Apply global filters
         for filter_func in self._global_filters:
             if not filter_func(event_data):
-                self._logger.debug(f"Событие '{event_name}' отфильтровано")
+                self._logger.debug(f"Event '{event_name}' filtered")
                 return []
         
-        # Добавляем в историю
+        # Add to history
         self._add_to_history(event_data)
         
         results = []
@@ -185,10 +185,10 @@ class EventSystem:
         
         with self._get_lock():
             if event_name not in self._handlers:
-                self._logger.debug(f"Нет обработчиков для события '{event_name}'")
+                self._logger.debug(f"No handlers for event '{event_name}'")
                 return results
             
-            # Создаем копию списка обработчиков для безопасной итерации
+            # Create handler copy for safe iteration
             handlers = self._handlers[event_name].copy()
         
         for handler in handlers:
@@ -203,77 +203,77 @@ class EventSystem:
                 result = handler.call(event_data)
                 results.append(result)
                 
-                # Удаляем одноразовые обработчики
+                # Remove one-time handlers
                 if handler.once:
                     handlers_to_remove.append(handler)
                     
             except Exception as e:
-                self._logger.error(f"Ошибка в обработчике события '{event_name}': {e}")
+                self._logger.error(f"Error in handler for event '{event_name}': {e}")
         
-        # Удаляем недействительные и одноразовые обработчики
+        # Remove invalid and one-time handlers
         if handlers_to_remove:
             with self._get_lock():
                 for handler in handlers_to_remove:
                     if handler in self._handlers[event_name]:
                         self._handlers[event_name].remove(handler)
         
-        self._logger.debug(f"Событие '{event_name}' обработано {len(results)} обработчиками")
+        self._logger.debug(f"Event '{event_name}' handled by {len(results)} handlers")
         return results
     
     def add_global_filter(self, filter_func: Callable[[EventData], bool]) -> None:
-        """Добавить глобальный фильтр событий"""
+        """Add global event filter"""
         self._global_filters.append(filter_func)
     
     def remove_global_filter(self, filter_func: Callable[[EventData], bool]) -> bool:
-        """Удалить глобальный фильтр событий"""
+        """Remove global event filter"""
         if filter_func in self._global_filters:
             self._global_filters.remove(filter_func)
             return True
         return False
     
     def get_event_handlers(self, event_name: str) -> List[EventHandler]:
-        """Получить список обработчиков для события"""
+        """Get handlers for an event"""
         with self._get_lock():
             return self._handlers.get(event_name, []).copy()
     
     def get_event_names(self) -> List[str]:
-        """Получить список всех зарегистрированных событий"""
+        """Get all registered event names"""
         with self._get_lock():
             return list(self._handlers.keys())
 
     def clear_handlers(self, event_name: Optional[str] = None) -> None:
-        """Очистить обработчики (все или для конкретного события)"""
+        """Clear handlers (all or for specific event)"""
         with self._get_lock():
             if event_name:
                 self._handlers.pop(event_name, None)
-                self._logger.debug(f"Очищены обработчики для события '{event_name}'")
+                self._logger.debug(f"Cleared handlers for event '{event_name}'")
             else:
                 self._handlers.clear()
-                self._logger.debug("Очищены все обработчики событий")
+                self._logger.debug("Cleared all event handlers")
     
     def get_event_history(self, limit: Optional[int] = None) -> List[EventData]:
-        """Получить историю событий"""
+        """Get event history"""
         if limit:
             return self._event_history[-limit:]
         return self._event_history.copy()
     
     def clear_history(self) -> None:
-        """Очистить историю событий"""
+        """Clear event history"""
         self._event_history.clear()
     
     def _add_to_history(self, event_data: EventData) -> None:
-        """Добавить событие в историю"""
+        """Add event to history"""
         self._event_history.append(event_data)
         if len(self._event_history) > self._max_history_size:
             self._event_history.pop(0)
     
     def _get_lock(self):
-        """Получить блокировку или заглушку"""
+        """Get lock or dummy lock"""
         return self._lock if self._lock else _DummyLock()
 
 
 class _DummyLock:
-    """Заглушка для блокировки в однопоточном режиме"""
+    """Dummy lock for single-threaded mode"""
     def __enter__(self):
         return self
     
@@ -281,12 +281,12 @@ class _DummyLock:
         pass
 
 
-# Декораторы для удобства
+# Convenience decorators
 def event_handler(event_system: EventSystem, 
                   event_name: str,
                   priority: EventPriority = EventPriority.NORMAL,
                   once: bool = False):
-    """Декоратор для регистрации обработчика события"""
+    """Decorator to register event handler"""
     def decorator(func):
         event_system.subscribe(event_name, func, priority, once)
         return func
@@ -294,7 +294,7 @@ def event_handler(event_system: EventSystem,
 
 
 def cancellable_event(func):
-    """Декоратор для создания отменяемого события"""
+    """Decorator to create cancellable event"""
     @wraps(func)
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
@@ -305,24 +305,24 @@ def cancellable_event(func):
 
 event_system = EventSystem()
 
-# Пример использования
+# Usage example
 if __name__ == "__main__":
     class DamageEventData(EventData):
-        """Данные события получения урона"""
+        """Damage event data"""
         def __init__(self, event_name: str, damage_amount: int, damage_type: str):
             self.damage_amount = damage_amount
             self.damage_type = damage_type
 
-    # Создание системы
+    # Create system
     event_system = EventSystem()
 
-    # Подписка на событие
+    # Subscribe to event
     def handle_damage(event_data):
-        print(f"Получен урон: {event_data.damage_amount}")
+        print(f"Damage taken: {event_data.damage_amount}")
 
     event_system.subscribe("gettingDamage", handle_damage)
 
-    # Активация события
+    # Emit event
     damage_data = DamageEventData(
         event_name="gettingDamage",
         damage_amount=50,

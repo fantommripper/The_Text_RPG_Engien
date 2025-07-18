@@ -17,7 +17,7 @@ from controller.AudioController import AudioController
 
 
 class TerminalState(Enum):
-    """Состояния терминала"""
+    """Terminal states"""
     NORMAL = "normal"
     MAXIMIZED = "maximized" 
     FULLSCREEN = "fullscreen"
@@ -25,7 +25,7 @@ class TerminalState(Enum):
 
 
 class ExitCode(Enum):
-    """Коды выхода из приложения"""
+    """Exit codes"""
     SUCCESS = 0
     ERROR = 1
     FORCE_EXIT = 2
@@ -33,7 +33,7 @@ class ExitCode(Enum):
 
 @dataclass(frozen=True)
 class WindowDimensions:
-    """Размеры окна"""
+    """Window dimensions"""
     width: int
     height: int
     
@@ -44,14 +44,14 @@ class WindowDimensions:
 
 @dataclass(frozen=True)
 class WindowPosition:
-    """Позиция окна"""
+    """Window position"""
     x: int
     y: int
 
 
 @dataclass
 class TerminalInfo:
-    """Информация о терминале"""
+    """Terminal information"""
     title: Optional[str]
     dimensions: Optional[WindowDimensions]
     position: Optional[WindowPosition]
@@ -61,7 +61,7 @@ class TerminalInfo:
 
 # Windows API структуры с правильной типизацией
 class COORD(ctypes.Structure):
-    """Координаты консоли Windows"""
+    """Windows console coordinates"""
     _fields_ = [("X", ctypes.c_short), ("Y", ctypes.c_short)]
     
     def __repr__(self) -> str:
@@ -69,7 +69,7 @@ class COORD(ctypes.Structure):
 
 
 class SMALL_RECT(ctypes.Structure):
-    """Прямоугольник консоли Windows"""
+    """Windows console rectangle"""
     _fields_ = [
         ("Left", ctypes.c_short),
         ("Top", ctypes.c_short),
@@ -82,7 +82,7 @@ class SMALL_RECT(ctypes.Structure):
 
 
 class CONSOLE_SCREEN_BUFFER_INFO(ctypes.Structure):
-    """Информация о буфере экрана консоли Windows"""
+    """Windows console screen buffer information"""
     _fields_ = [
         ("dwSize", COORD),
         ("dwCursorPosition", COORD), 
@@ -102,7 +102,7 @@ class CONSOLE_SCREEN_BUFFER_INFO(ctypes.Structure):
 
 @runtime_checkable
 class WindowProtocol(Protocol):
-    """Протокол для объектов окон"""
+    """Window protocol"""
     title: str
     
     def maximize(self) -> None: ...
@@ -111,27 +111,27 @@ class WindowProtocol(Protocol):
 
 
 class ConsoleSettingsError(Exception):
-    """Базовый класс исключений для ConsoleSettings"""
+    """Base exception class for ConsoleSettings"""
     pass
 
 
 class WindowNotFoundError(ConsoleSettingsError):
-    """Исключение когда окно не найдено"""
+    """Window not found error"""
     pass
 
 
 class TerminalOperationError(ConsoleSettingsError):
-    """Исключение при операциях с терминалом"""
+    """Terminal operation error"""
     pass
 
 
 class CursesWindowError(ConsoleSettingsError):
-    """Исключение при работе с curses окнами"""
+    """Curses window error"""
     pass
 
 
 class IWindowManager(ABC):
-    """Абстрактный интерфейс для управления окнами"""
+    """Abstract interface for window management"""
     
     @abstractmethod
     def get_active_window_title(self) -> Optional[str]:
@@ -150,7 +150,7 @@ class IWindowManager(ABC):
 
 
 class WindowManager(IWindowManager):
-    """Реализация менеджера окон через pygetwindow"""
+    """Window manager implementation using pygetwindow"""
     
     def __init__(self) -> None:
         self._last_active_window: Optional[str] = None
@@ -226,10 +226,10 @@ class WindowManager(IWindowManager):
 
 class ConsoleSettings:
     """
-    Класс для управления настройками консоли и терминала
+    Class for managing console and terminal settings
     
-    Предоставляет методы для работы с окнами терминала,
-    управления полноэкранным режимом и завершения приложения.
+    Provides methods for working with terminal windows,
+    managing fullscreen mode, and exiting the application.
     """
     
     def __init__(self, window_manager: Optional[IWindowManager] = None) -> None:
@@ -260,10 +260,10 @@ class ConsoleSettings:
     
     def add_exit_handler(self, handler: callable) -> None:
         """
-        Добавить обработчик выхода
+        Add an exit handler
         
         Args:
-            handler: Функция-обработчик
+            handler: Exit handler function
         """
         if callable(handler):
             self._exit_handlers.append(handler)
@@ -273,13 +273,13 @@ class ConsoleSettings:
     
     def remove_exit_handler(self, handler: callable) -> bool:
         """
-        Удалить обработчик выхода
+        Remove an exit handler
         
         Args:
-            handler: Функция-обработчик
+            handler: Exit handler function
             
         Returns:
-            bool: True если удален
+            bool: True if removed
         """
         try:
             self._exit_handlers.remove(handler)
@@ -290,10 +290,10 @@ class ConsoleSettings:
     
     def get_current_window_title(self) -> Optional[str]:
         """
-        Получить заголовок текущего активного окна
+        Get the title of the current active window
         
         Returns:
-            Optional[str]: Заголовок окна или None
+            Optional[str]: Window title or None
         """
         try:
             title = self._window_manager.get_active_window_title()
@@ -306,10 +306,10 @@ class ConsoleSettings:
     
     def get_terminal_info(self) -> TerminalInfo:
         """
-        Получить информацию о терминале
+        Get terminal information
         
         Returns:
-            TerminalInfo: Информация о терминале
+            TerminalInfo: Terminal information
         """
         try:
             title = self.get_current_window_title()
@@ -338,10 +338,10 @@ class ConsoleSettings:
     
     def _find_terminal_window(self) -> Optional[Any]:
         """
-        Найти окно терминала
+        Find the terminal window
         
         Returns:
-            Optional[Any]: Объект окна или None
+            Optional[Any]: Window object or None
         """
         try:
             title = self.get_current_window_title()
@@ -364,13 +364,13 @@ class ConsoleSettings:
     
     def maximize_terminal(self) -> bool:
         """
-        Максимизировать окно терминала
+        Maximize the terminal window
         
         Returns:
-            bool: True если успешно максимизировано
+            bool: True if maximized successfully
             
         Raises:
-            TerminalOperationError: При ошибке максимизации
+            TerminalOperationError: If maximization fails
         """
         try:
             terminal_window = self._find_terminal_window()
@@ -392,10 +392,10 @@ class ConsoleSettings:
     
     def _block_key(self, key: str) -> None:
         """
-        Заблокировать клавишу
+        Block a key
         
         Args:
-            key: Клавиша для блокировки
+            key: Key to block
         """
         try:
             if key not in self._blocked_keys:
@@ -406,7 +406,7 @@ class ConsoleSettings:
             logger.error(f"Failed to block key '{key}': {e}")
     
     def _unblock_all_keys(self) -> None:
-        """Разблокировать все заблокированные клавиши"""
+        """Unblock all blocked keys"""
         for key in self._blocked_keys.copy():
             try:
                 keyboard.unblock_key(key)
@@ -417,13 +417,13 @@ class ConsoleSettings:
     
     def open_terminal_fullscreen(self) -> bool:
         """
-        Открыть терминал в полноэкранном режиме
+        Open terminal in fullscreen mode
         
         Returns:
-            bool: True если успешно переключено в полноэкранный режим
+            bool: True if switched to fullscreen successfully
             
         Raises:
-            TerminalOperationError: При ошибке переключения
+            TerminalOperationError: If switching fails
         """
         try:
             # Сначала максимизируем
@@ -458,10 +458,10 @@ class ConsoleSettings:
     
     def exit_fullscreen(self) -> bool:
         """
-        Выйти из полноэкранного режима
+        Exit fullscreen mode
         
         Returns:
-            bool: True если успешно
+            bool: True if successful
         """
         try:
             if not self._is_fullscreen_active:
@@ -487,16 +487,16 @@ class ConsoleSettings:
     
     def create_fullscreen_window(self, stdscr: Any) -> Any:
         """
-        Создать полноэкранное окно curses
+        Create a fullscreen curses window
         
         Args:
-            stdscr: Стандартный экран curses
+            stdscr: Standard curses screen
             
         Returns:
-            Any: Новое окно curses
+            Any: New curses window
             
         Raises:
-            CursesWindowError: При ошибке создания окна
+            CursesWindowError: If window creation fails
         """
         try:
             if stdscr is None:
@@ -527,7 +527,7 @@ class ConsoleSettings:
             raise CursesWindowError(f"Cannot create fullscreen window: {e}")
     
     def _execute_exit_handlers(self) -> None:
-        """Выполнить все обработчики выхода"""
+        """Execute all exit handlers"""
         for handler in self._exit_handlers:
             try:
                 handler()
@@ -536,7 +536,7 @@ class ConsoleSettings:
                 logger.error(f"Exit handler failed: {e}")
     
     def _cleanup_resources(self) -> None:
-        """Очистить ресурсы перед выходом"""
+        """Clean up resources before exit"""
         try:
             # Разблокируем все клавиши
             self._unblock_all_keys()
@@ -560,17 +560,17 @@ class ConsoleSettings:
         except Exception as e:
             logger.error(f"Error during cleanup: {e}")
     
-    def exit_terminal(self, exit_code: ExitCode = ExitCode.SUCCESS, 
-                     show_message: bool = True) -> None:
+    def exit_terminal(self, exit_code: ExitCode = ExitCode.SUCCESS,
+                    show_message: bool = True) -> None:
         """
-        Завершить работу терминала и приложения
+        Terminate the terminal and application
         
         Args:
-            exit_code: Код выхода
-            show_message: Показать сообщение о выходе
+            exit_code: Exit code
+            show_message: Show exit message
             
         Raises:
-            TerminalOperationError: При критической ошибке выхода
+            TerminalOperationError: If a critical exit error occurs
         """
         try:
             logger.info(f"Terminal exit initiated with code: {exit_code}")
@@ -613,7 +613,7 @@ class ConsoleSettings:
             raise TerminalOperationError(f"Critical exit error: {e}")
     
     def force_exit(self) -> None:
-        """Принудительный выход из приложения"""
+        """Force exit the application"""
         logger.warning("Force exit initiated")
         try:
             self._cleanup_resources()
@@ -623,11 +623,11 @@ class ConsoleSettings:
             os._exit(ExitCode.FORCE_EXIT.value)
     
     def __enter__(self):
-        """Контекстный менеджер: вход"""
+        """Context manager: enter"""
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Контекстный менеджер: выход"""
+        """Context manager: exit"""
         if exc_type is not None:
             logger.error(f"Exception in context: {exc_type.__name__}: {exc_val}")
         self.exit_terminal(ExitCode.ERROR if exc_type else ExitCode.SUCCESS)
@@ -644,24 +644,24 @@ class _ConsoleSingleton:
         return cls._instance
 
 
-# Глобальный экземпляр для обратной совместимости
+# Global instance for backward compatibility
 console_settings = _ConsoleSingleton()
 
 
 # Удобные функции для быстрого доступа
 def get_console_settings() -> ConsoleSettings:
-    """Получить экземпляр ConsoleSettings"""
+    """Get ConsoleSettings instance"""
     return console_settings
 
 
 def initialize_console_settings(window_manager: Optional[IWindowManager] = None) -> ConsoleSettings:
     """
-    Инициализировать новый экземпляр ConsoleSettings
+    Initialize a new ConsoleSettings instance
     
     Args:
-        window_manager: Кастомный менеджер окон
+        window_manager: Custom window manager
         
     Returns:
-        ConsoleSettings: Новый экземпляр
+        ConsoleSettings: New instance
     """
     return ConsoleSettings(window_manager)

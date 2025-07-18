@@ -7,12 +7,22 @@ from data.Config import Config
 from lib.Logger import logger
 
 class SaveManager:
+    """
+    Class for managing game data saving and loading
+    Handles encryption, file operations, and data integrity checks
+    """
     def __init__(self):
         self.save_dir = self.save_dir = os.path.join(os.getenv("LOCALAPPDATA"), ".TheTextRPG")
         self.key_file = os.path.join(self.save_dir, "encryption_key.key")
         self.fernet = self._load_or_create_key()
 
     def _load_or_create_key(self):
+        """
+        Load or create a new encryption key
+    
+        Creates the save directory if it doesn't exist
+        Generates a new key if it doesn't exist, otherwise loads the existing key
+        """
         os.makedirs(self.save_dir, exist_ok=True)
 
         if not os.path.exists(self.key_file):
@@ -25,6 +35,13 @@ class SaveManager:
         return Fernet(key)
 
     def save_data(self, data, save_name):
+        """
+        Save game data to files
+    
+        Args:
+            data: Data to save
+            save_name: Name of the save file
+        """
         os.makedirs(self.save_dir, exist_ok=True)
 
         json_file = os.path.join(self.save_dir, f"{save_name}.json")
@@ -43,6 +60,13 @@ class SaveManager:
             f.write(encrypted_data)
 
     def load_data(self, save_name, data_class=None):
+        """
+        Load game data from files
+    
+        Args:
+            save_name: Name of the save file
+            data_class: Class to deserialize data into (optional)
+        """
         json_file = os.path.join(self.save_dir, f"{save_name}.json")
         encrypted_file = os.path.join(self.save_dir, f"{save_name}.enc")
 
@@ -71,6 +95,12 @@ class SaveManager:
             logger.error(f"{data_class.__name__} does not have a from_dict method.")
 
     def list_saves(self):
+        """
+        List available saves
+    
+        Returns:
+            list: List of save names
+        """
         saves = []
         for file in os.listdir(self.save_dir):
             if file.endswith(".json"):
@@ -78,6 +108,12 @@ class SaveManager:
         return saves
 
     def delete_save(self, save_name):
+        """
+        Delete a save
+    
+        Args:
+            save_name: Name of the save to delete
+        """
         json_file = os.path.join(self.save_dir, f"{save_name}.json")
         encrypted_file = os.path.join(self.save_dir, f"{save_name}.enc")
 
@@ -87,12 +123,18 @@ class SaveManager:
             os.remove(encrypted_file)
 
     def load_all_game_data(self):
+        """
+        Load all game data
+        """
         config_save = self.load_data("config", Config.get_instance())
 
         if config_save is None:
             self.save_data(Config.get_instance().to_dict(), "config")
 
     def save_all_game_data(self):
+        """
+        Save all game data
+        """
         self.save_data(Config.get_instance().to_dict(), "config")
 
 

@@ -1,6 +1,9 @@
 from lib.Logger import logger
 
 class InputController:
+    """
+    Class for managing input and handling keyboard events
+    """
     def __init__(self):
         self._events = []
 
@@ -17,6 +20,9 @@ class InputController:
         return candidate
 
     class InputEvent:
+        """
+        Class representing an input event
+        """
         def __init__(self, controller):
             self.controller = controller
 
@@ -33,6 +39,17 @@ class InputController:
             del self
 
     def add_input_event(self, key, function, pause=False) -> InputEvent:
+        """
+        Add an input event
+    
+        Args:
+            key: Key or key code
+            function: Event handling function
+            pause: Pause event processing
+    
+        Returns:
+            InputEvent: Created input event
+        """
         event = self.InputEvent(self)
         if isinstance(key, str) and len(key) == 1:
             event.key = ord(key)
@@ -44,9 +61,22 @@ class InputController:
         return event
 
     def remove_input_event(self, id):
+        """
+        Remove an input event by its identifier
+    
+        Args:
+            id: Event identifier
+        """
         self._events = [event for event in self._events if event.id != id]
 
     def set_input_event_pause(self, id, bool):
+        """
+        Set input event pause
+    
+        Args:
+            id: Event identifier
+            bool: True to pause, False to resume
+        """
         for event in self._events:
             if event.id == id:
                 event.pause = bool

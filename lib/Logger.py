@@ -4,6 +4,10 @@ import os
 import inspect
 
 class Logger:
+    """
+    Class for managing logging functionality
+    Handles different log levels and message formatting
+    """
     def __init__(self, log_folder: str):
         self.log_folder = log_folder
         self.logger = None
@@ -41,14 +45,32 @@ class Logger:
         return "Unknown File"
 
     def debug(self, message):
+        """
+        Log a debug message
+    
+        Args:
+            message: Message to log
+        """
         caller_info = self._get_caller_info()
         self.logger.debug(f"{caller_info} : {message}")
 
     def info(self, message):
+        """
+        Log an informational message
+    
+        Args:
+            message: Message to log
+        """
         caller_info = self._get_caller_info()
         self.logger.info(f"{caller_info} : {message}")
 
     def warning(self, message):
+        """
+        Log a warning message
+    
+        Args:
+            message: Message to log
+        """
         caller_info = self._get_caller_info()
         self.logger.warning(f"{caller_info} : {message}")
 
@@ -57,6 +79,12 @@ class Logger:
         self.logger.error(f"{caller_info} : {message}", exc_info=exc_info)
 
     def critical(self, message):
+        """
+        Log a critical message
+    
+        Args:
+            message: Message to log
+        """
         caller_info = self._get_caller_info()
         self.logger.critical(f"{caller_info} : {message}")
 
